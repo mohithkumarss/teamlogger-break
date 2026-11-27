@@ -57,19 +57,95 @@ a month calendar, an 8-week trend, and every day's timeline and breaks.
 
 ## Install
 
-You need the **TeamLogger desktop app** installed and signed in on the same computer. Then download
-the installer for your system from **[Releases](../../releases)** (open **Assets** under the latest release):
+**Before you start:** the **TeamLogger desktop app** must be installed and signed in on the same computer.
 
-| System | Download | Then |
+### 1. Download
+
+Latest version: **[v0.1.0](https://github.com/vyaca-corp/teamlogger-break/releases/latest)**. Click the file for your system:
+
+| System | Download | Size |
 |---|---|---|
-| **Windows** | `TeamLogger Break_…_x64-setup.exe` (or `.msi`) | Run it. If SmartScreen warns, click **More info → Run anyway** (the installer isn't signed yet). |
-| **macOS** | `TeamLogger Break_…_universal.dmg` | Drag the app to **Applications**. First launch: **right-click → Open → Open** (not notarized yet). |
-| **Ubuntu / Debian** | `TeamLogger Break_…_amd64.deb` | `sudo apt install ./TeamLogger*Break_*_amd64.deb` |
-| **Fedora / openSUSE** | `TeamLogger Break-….x86_64.rpm` | `sudo dnf install ./TeamLogger*Break-*.rpm` |
-| **Any Linux** | `TeamLogger Break_…_amd64.AppImage` | `chmod +x` it, then run it |
+| **Windows 10 / 11** | **[TeamLogger.Break_0.1.0_x64-setup.exe](https://github.com/vyaca-corp/teamlogger-break/releases/download/v0.1.0/TeamLogger.Break_0.1.0_x64-setup.exe)** &nbsp;·&nbsp; or [.msi](https://github.com/vyaca-corp/teamlogger-break/releases/download/v0.1.0/TeamLogger.Break_0.1.0_x64_en-US.msi) | 4 MB |
+| **macOS** (Apple Silicon + Intel) | **[TeamLogger.Break_0.1.0_universal.dmg](https://github.com/vyaca-corp/teamlogger-break/releases/download/v0.1.0/TeamLogger.Break_0.1.0_universal.dmg)** | 12 MB |
+| **Ubuntu / Debian / Mint** | **[TeamLogger.Break_0.1.0_amd64.deb](https://github.com/vyaca-corp/teamlogger-break/releases/download/v0.1.0/TeamLogger.Break_0.1.0_amd64.deb)** | 8 MB |
+| **Fedora / openSUSE** | **[TeamLogger.Break-0.1.0-1.x86_64.rpm](https://github.com/vyaca-corp/teamlogger-break/releases/download/v0.1.0/TeamLogger.Break-0.1.0-1.x86_64.rpm)** | 8 MB |
+| **Any Linux** | **[TeamLogger.Break_0.1.0_amd64.AppImage](https://github.com/vyaca-corp/teamlogger-break/releases/download/v0.1.0/TeamLogger.Break_0.1.0_amd64.AppImage)** | 82 MB |
 
-On Linux the countdown sits in the top bar; GNOME needs the *AppIndicator* extension
-(built into Ubuntu). Building from source and uninstalling: see the **[user guide](docs/USER_GUIDE.md)**.
+### 2. Install
+
+<details open>
+<summary><b>Windows</b></summary>
+
+1. Open **`TeamLogger.Break_0.1.0_x64-setup.exe`** from your Downloads folder.
+2. If Windows says *"Windows protected your PC"*, click **More info → Run anyway**. The installer
+   isn't code-signed yet.
+3. Click through the installer, then open **TeamLogger Break** from the Start menu.
+
+The countdown appears in the **system tray** at the bottom right. It may be hidden under the **^** arrow;
+drag it out to keep it visible.
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+1. Open **`TeamLogger.Break_0.1.0_universal.dmg`** and drag **TeamLogger Break** into **Applications**.
+2. The first time, open **Applications**, **right-click (Control-click) TeamLogger Break → Open → Open**.
+   macOS asks this once because the app isn't notarized yet.
+   If it still won't open: **System Settings → Privacy & Security → Open Anyway**.
+3. Allow notifications when asked.
+
+The countdown appears in the **menu bar** at the top right.
+</details>
+
+<details>
+<summary><b>Ubuntu / Debian / Mint</b></summary>
+
+Download the file, then run this in a terminal:
+
+```bash
+cd ~/Downloads
+sudo apt install ./TeamLogger.Break_0.1.0_amd64.deb
+```
+
+Or download and install in one step:
+
+```bash
+wget -O /tmp/teamlogger-break.deb https://github.com/vyaca-corp/teamlogger-break/releases/download/v0.1.0/TeamLogger.Break_0.1.0_amd64.deb && sudo apt install /tmp/teamlogger-break.deb
+```
+
+Open **TeamLogger Break** from your app menu. The countdown appears in the **top bar**. On GNOME this needs
+the AppIndicator extension, which Ubuntu already includes.
+</details>
+
+<details>
+<summary><b>Fedora / openSUSE</b></summary>
+
+```bash
+cd ~/Downloads
+sudo dnf install ./TeamLogger.Break-0.1.0-1.x86_64.rpm      # openSUSE: sudo zypper install ./TeamLogger.Break-0.1.0-1.x86_64.rpm
+```
+
+On GNOME, install the **"AppIndicator and KStatusNotifierItem Support"** extension to see the countdown in the top bar.
+</details>
+
+<details>
+<summary><b>Any Linux (AppImage)</b></summary>
+
+No install needed. Make it executable, then run it:
+
+```bash
+cd ~/Downloads
+chmod +x TeamLogger.Break_0.1.0_amd64.AppImage
+./TeamLogger.Break_0.1.0_amd64.AppImage
+```
+</details>
+
+### 3. Open it
+
+Start **TeamLogger Break**. The setup takes a minute and is described in [Getting started](#getting-started).
+
+Updating means installing the newer version over the old one; your settings are kept. For
+uninstalling, building from source and troubleshooting, see the **[user guide](docs/USER_GUIDE.md)**.
 
 ## Getting started
 

@@ -7,8 +7,9 @@
 3. The **Release** workflow builds on GitHub's machines and attaches the installers to a **draft** release:
    - Windows: `.msi` and `.exe` (NSIS)
    - macOS: universal `.dmg` (Apple Silicon + Intel)
-   - Linux: `.deb` and `.AppImage`
+   - Linux: `.deb`, `.rpm` and `.AppImage`
 4. Check the draft, then publish it.
+5. Update the direct download links in `README.md` (Install section): the file names contain the version.
 
 The **CI** workflow runs on every push / pull request: UI type-check + build, Rust unit tests on Linux,
 and a compile + unit-test run on macOS and Windows.

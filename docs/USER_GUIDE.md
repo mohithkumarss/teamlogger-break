@@ -23,12 +23,12 @@ Breaks on a schedule, for the TeamLogger desktop app. *Unofficial — not affili
 
 ## Install
 
-Download the installer for your system from the project's **[Releases](../../../releases)** page
-(the latest release is at the top; open **Assets**).
+Download the installer for your system from the **[latest release](https://github.com/vyaca-corp/teamlogger-break/releases/latest)**
+(scroll to **Assets**), or use the direct links in the [README](../README.md#install).
 
 ### Windows
 
-1. Download **`TeamLogger Break_…_x64-setup.exe`** (or the `.msi`).
+1. Download **`TeamLogger.Break_<version>_x64-setup.exe`** (or the `.msi`).
 2. Open it. Windows SmartScreen may say *"Windows protected your PC"* because the installer isn't
    signed yet — click **More info → Run anyway**.
 3. Follow the installer, then open **TeamLogger Break** from the Start menu.
@@ -38,7 +38,7 @@ out to keep it visible). Hover it to see the time left.
 
 ### macOS
 
-1. Download **`TeamLogger Break_…_universal.dmg`** (works on Apple Silicon and Intel).
+1. Download **`TeamLogger.Break_<version>_universal.dmg`** (works on Apple Silicon and Intel).
 2. Open it and drag **TeamLogger Break** into **Applications**.
 3. The first time, **right-click (or Control-click) the app → Open → Open**. macOS asks this once
    because the app isn't notarized yet. (If it still refuses: System Settings → Privacy & Security →
@@ -49,19 +49,20 @@ The countdown lives in the **menu bar** (top right) as a small ring with the tim
 
 ### Linux
 
-**Ubuntu / Debian** — download **`TeamLogger Break_…_amd64.deb`**, then:
+**Ubuntu / Debian** — download **`TeamLogger.Break_<version>_amd64.deb`**, then:
 
 ```bash
-sudo apt install ./TeamLogger*Break_*_amd64.deb
+cd ~/Downloads
+sudo apt install ./TeamLogger.Break_*_amd64.deb
 ```
 
-**Fedora / openSUSE** — download the `.rpm`, then `sudo dnf install ./TeamLogger*Break-*.rpm`.
+**Fedora / openSUSE** — download the `.rpm`, then `sudo dnf install ./TeamLogger.Break-*.rpm`.
 
 **Any distribution** — download the `.AppImage`, make it executable and run it:
 
 ```bash
-chmod +x TeamLogger*Break_*_amd64.AppImage
-./TeamLogger*Break_*_amd64.AppImage
+chmod +x TeamLogger.Break_*_amd64.AppImage
+./TeamLogger.Break_*_amd64.AppImage
 ```
 
 The countdown lives in the **top bar**. On GNOME this needs the *AppIndicator* extension — Ubuntu has
