@@ -115,7 +115,7 @@ export function runSetup(root: HTMLElement): Promise<void> {
             h("label", { class: "consent", for: "consent" }, consent,
               h("span", {}, "I agree that TeamLogger Break may restart TeamLogger with a local control port and press its break buttons.")),
             live,
-            h("p", { class: "tiny" }, "Connecting comes in the next update of this preview — your choice is saved now. You can change it any time in Settings."),
+            h("p", { class: "tiny" }, "Your choice is saved. You can connect later and change it any time in Settings."),
           ];
         },
         leave: stopTimers,
@@ -203,7 +203,7 @@ export function runSetup(root: HTMLElement): Promise<void> {
                 h("div", { class: "row", style: "margin-top:4px" },
                   h("span", { class: "body-strong spacer" }, "Phone notifications"),
                   switchEl(app.cfg.phone.enabled, "Phone notifications", (on) => app.update({ phone: { enabled: on } }))),
-                h("button", { class: "btn soft", on: { click: () => app.notYet("Send test to phone") } }, "Send test"))),
+                h("button", { class: "btn soft", on: { click: () => app.phoneTest() } }, "Send test"))),
             h("p", { class: "tiny" }, "Messages go through ntfy.sh and contain only break times. Keep the topic private — anyone who knows it could see your breaks or press the buttons."),
           ];
         },

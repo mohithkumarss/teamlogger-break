@@ -1,7 +1,7 @@
 //! "Connect": restart TeamLogger once with its local DevTools port open.
 //!
-//! Linux is verified (same steps as the Python app). Windows and macOS come with
-//! milestone 7 and report "not available yet" until then.
+//! Linux is verified (same steps as the Python app). macOS and Windows follow
+//! the same idea but are unverified until run on those systems (milestone 7).
 //!
 //! Linux details that matter:
 //! * Stop only TeamLogger's **main** process (no `--type=` argument). Killing its
@@ -149,10 +149,141 @@ mod imp {
     }
 }
 
-#[cfg(not(target_os = "linux"))]
+/// Wait for the control port after a start; shared by macOS and Windows.
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+fn wait_for_port(port: u16, secs: u64) -> bool {
+    let deadline = Instant::now() + Duration::from_secs(secs);
+    while Instant::now() < deadline {
+        std::thread::sleep(Duration::from_secs(1));
+        if control_port_open(port) {
+            std::thread::sleep(Duration::from_secs(5));
+            return true;
+        }
+    }
+    false
+}
+
+// NOTE: macOS and Windows are written from TeamLogger's documented behaviour as an
+// Electron app but are UNVERIFIED until run on those systems (plan milestone 7).
+#[cfg(target_os = "macos")]
+mod imp {
+    use super::*;
+    use std::process::{Command, Stdio};
+
+    fn app_name(app: &str) -> String {
+        Path::new(app).file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "TeamLogger".into())
+    }
+
+    fn running(name: &str) -> bool {
+        Command::new("pgrep").args(["-x", name]).stdout(Stdio::null()).status().is_ok_and(|s| s.success())
+    }
+
+    pub fn connect(app: &str, port: u16, log: &dyn Fn(String)) -> Result<String, String> {
+        if control_port_open(port) {
+            return Ok("TeamLogger is already connected".into());
+        }
+        let name = app_name(app);
+        for attempt in 1..=3 {
+            log(format!("Restarting TeamLogger with the control port (attempt {attempt})…"));
+            let _ = Command::new("osascript").args(["-e", &format!("quit app \"{name}\"")]).status();
+            let deadline = Instant::now() + Duration::from_secs(15);
+            while running(&name) && Instant::now() < deadline {
+                std::thread::sleep(Duration::from_millis(300));
+            }
+            if running(&name) {
+                let _ = Command::new("pkill").args(["-x", &name]).status();
+                std::thread::sleep(Duration::from_secs(2));
+            }
+            let port_arg = format!("--remote-debugging-port={port}");
+            Command::new("open")
+                .args(["-n", "-a", app, "--args", &port_arg, "--remote-allow-origins=*"])
+                .status()
+                .map_err(|e| format!("couldn't start TeamLogger: {e}"))?;
+            if wait_for_port(port, 45) {
+                return Ok("TeamLogger connected".into());
+            }
+        }
+        Err("TeamLogger didn't open its control port".into())
+    }
+}
+
+#[cfg(target_os = "windows")]
+mod imp {
+    use super::*;
+    use std::os::windows::process::CommandExt;
+    use std::process::{Command, Stdio};
+
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    const DETACHED_PROCESS: u32 = 0x0000_0008;
+    const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+
+    fn exe_name(exe: &str) -> String {
+        Path::new(exe).file_name().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "TeamLogger.exe".into())
+    }
+
+    /// PIDs of TeamLogger main processes (command line without `--type=`).
+    fn main_pids(name: &str) -> Vec<u32> {
+        let ps = format!(
+            "Get-CimInstance Win32_Process -Filter \"Name='{name}'\" | \
+             Where-Object {{ $_.CommandLine -notmatch '--type=' }} | ForEach-Object {{ $_.ProcessId }}"
+        );
+        let out = Command::new("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-Command", &ps])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output();
+        out.map(|o| String::from_utf8_lossy(&o.stdout).lines().filter_map(|l| l.trim().parse().ok()).collect())
+            .unwrap_or_default()
+    }
+
+    fn any_running(name: &str) -> bool {
+        Command::new("tasklist")
+            .args(["/FI", &format!("IMAGENAME eq {name}"), "/NH"])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).to_lowercase().contains(&name.to_lowercase()))
+            .unwrap_or(false)
+    }
+
+    pub fn connect(exe: &str, port: u16, log: &dyn Fn(String)) -> Result<String, String> {
+        if control_port_open(port) {
+            return Ok("TeamLogger is already connected".into());
+        }
+        let name = exe_name(exe);
+        for attempt in 1..=3 {
+            log(format!("Restarting TeamLogger with the control port (attempt {attempt})…"));
+            // end the main process together with its helpers (/T), so nothing is left to relaunch it
+            for pid in main_pids(&name) {
+                let _ = Command::new("taskkill")
+                    .args(["/PID", &pid.to_string(), "/T", "/F"])
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .status();
+            }
+            let deadline = Instant::now() + Duration::from_secs(15);
+            while any_running(&name) && Instant::now() < deadline {
+                std::thread::sleep(Duration::from_millis(400));
+            }
+            Command::new(exe)
+                .args([format!("--remote-debugging-port={port}"), "--remote-allow-origins=*".to_string()])
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
+                .spawn()
+                .map_err(|e| format!("couldn't start TeamLogger: {e}"))?;
+            if wait_for_port(port, 45) {
+                return Ok("TeamLogger connected".into());
+            }
+        }
+        Err("TeamLogger didn't open its control port".into())
+    }
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 mod imp {
     pub fn connect(_exe: &str, _port: u16, _log: &dyn Fn(String)) -> Result<String, String> {
-        Err("Connecting isn't available on this system yet — it comes with the Windows/macOS update.".into())
+        Err("Connecting isn't supported on this system".into())
     }
 }
 

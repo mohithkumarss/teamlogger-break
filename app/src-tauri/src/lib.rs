@@ -9,6 +9,9 @@ mod cdp;
 mod commands;
 mod control;
 mod launch;
+mod phone;
+mod runtime;
+mod sound;
 mod schedule;
 mod store;
 mod teamlogger;
@@ -27,6 +30,10 @@ pub struct AppState {
     pub ui_seen: std::sync::atomic::AtomicBool,
     /// What TeamLogger is doing (updated by the poller every few seconds).
     pub live: Mutex<control::Live>,
+    /// Phone alerts (ntfy); set up once the app runs.
+    pub phone: std::sync::OnceLock<phone::Phone>,
+    /// A TeamLogger click is in progress: the schedule waits.
+    pub busy: std::sync::atomic::AtomicBool,
 }
 
 impl AppState {
@@ -43,6 +50,8 @@ impl AppState {
             log_lines: Mutex::new(Vec::new()),
             ui_seen: Default::default(),
             live: Mutex::new(control::Live::default()),
+            phone: std::sync::OnceLock::new(),
+            busy: Default::default(),
             paths,
         };
         state.add_log(format!("Settings: {}", state.paths.config_file.display()));
@@ -73,8 +82,15 @@ pub fn run() {
         .manage(state)
         // the countdown in the menu bar / top bar / tray
         .setup(|app| {
+            let handle = app.handle().clone();
+            let state = app.state::<AppState>();
+            let log_handle = handle.clone();
+            let _ = state.phone.set(phone::Phone::new(move |m| log_handle.state::<AppState>().add_log(m)));
+            runtime::restore(&state);
             tray::setup(app.handle())?;
-            start_poller(app.handle().clone());
+            start_poller(handle.clone());
+            runtime::start(handle.clone());
+            runtime::start_phone_listener(&handle);
             Ok(())
         })
         // closing the window keeps the app (and the schedule) running, like the Linux app
@@ -103,6 +119,10 @@ pub fn run() {
             commands::not_yet,
             commands::teamlogger_status,
             commands::connect_teamlogger,
+            commands::break_now,
+            commands::resume_now,
+            commands::extend_break,
+            commands::phone_test,
             commands::set_teamlogger_path,
             commands::set_breaks,
             commands::suggested_breaks,

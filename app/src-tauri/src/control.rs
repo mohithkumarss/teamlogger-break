@@ -150,7 +150,6 @@ pub struct ClickGuard {
 }
 
 impl ClickGuard {
-    #[allow(dead_code)] // the scheduler (milestone 4) builds one from the config
     pub fn new(dry_run: bool) -> Self {
         let env = std::env::var("TLB_ALLOW_CLICKS").ok();
         let forced_off = env.as_deref() == Some("0");
@@ -189,13 +188,11 @@ fn click(port: u16, guard: ClickGuard, what: &str, js: String) -> Result<Clicked
 }
 
 /// Press "Take a break" (subject to the click guard).
-#[allow(dead_code)] // the scheduler (milestone 4) calls these
 pub fn take_break(port: u16, minutes: u32, guard: ClickGuard) -> Result<Clicked, String> {
     click(port, guard, "Take a break", js_take_break(minutes))
 }
 
 /// Press "Resume working" (subject to the click guard).
-#[allow(dead_code)]
 pub fn resume(port: u16, guard: ClickGuard) -> Result<Clicked, String> {
     click(port, guard, "Resume", js_resume())
 }

@@ -119,6 +119,36 @@ class AppState {
     if (ok) await this.connectNow();
   }
 
+  async breakNow(minutes: number) {
+    try {
+      this.status = await api.break_now(minutes);
+      toast(`On break for ${minutes} min`);
+      this.dataChanged();
+    } catch (e) { errorToast(e); }
+  }
+
+  async resumeNow() {
+    try {
+      this.status = await api.resume_now();
+      toast("Back to work");
+      this.dataChanged();
+    } catch (e) { errorToast(e); }
+  }
+
+  async extend(minutes: number) {
+    try {
+      this.status = await api.extend_break(minutes);
+      toast(`Break extended by ${minutes} min`);
+    } catch (e) { errorToast(e); }
+  }
+
+  async phoneTest() {
+    try {
+      this.setConfig(await api.phone_test());
+      toast("Test sent to your phone");
+    } catch (e) { errorToast(e); }
+  }
+
   /** Restart TeamLogger with its control port (consent already given). */
   async connectNow(): Promise<boolean> {
     if (!this.cfg.control_consent) {

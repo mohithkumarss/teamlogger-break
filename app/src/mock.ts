@@ -165,6 +165,10 @@ export function mockApi(): Api {
       connected: false, port: cfg.port, state: "unknown", total: null,
     }),
     connect_teamlogger: async () => { throw "Connecting needs the desktop app — this is the browser preview."; },
+    break_now: async () => { throw "Breaks need the desktop app — this is the browser preview."; },
+    resume_now: async () => { throw "Breaks need the desktop app — this is the browser preview."; },
+    extend_break: async () => { throw "Breaks need the desktop app — this is the browser preview."; },
+    phone_test: async () => { throw "Phone alerts need the desktop app — this is the browser preview."; },
     set_teamlogger_path: async (path) => { cfg.teamlogger_path = path; return copy(); },
     set_breaks: async (breaks) => {
       const sorted = [...breaks].sort((a, b) => a.start.localeCompare(b.start));

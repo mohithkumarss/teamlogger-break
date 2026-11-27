@@ -1,0 +1,58 @@
+name: Release
+
+# Push a tag like v1.0.0 (or run manually) to build installers for all three
+# systems. They're attached to a DRAFT release — review it, then publish.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            args: ""
+          - os: macos-latest
+            args: "--target universal-apple-darwin"
+          - os: windows-latest
+            args: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+      - name: Install UI dependencies
+        working-directory: app
+        run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing (optional, see docs/RELEASING.md): APPLE_CERTIFICATE, APPLE_ID, …
+        with:
+          projectPath: app
+          tagName: ${{ github.ref_name }}
+          releaseName: "TeamLogger Break ${{ github.ref_name }}"
+          releaseBody: "Unofficial — not made by or affiliated with TeamLogger. See the README for setup."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

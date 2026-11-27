@@ -84,12 +84,17 @@ Plugins: `tray-icon`, `notification`, `autostart`, `single-instance`, `store`, `
    stop main process, `systemd-run` scope, retry on self-relaunch; consent required), 5-s read-only poller
    (timeline + TeamLogger totals), real **Connect** in the UI. Clicks verified only on a mock page;
    real TeamLogger verified read-only. Connect not run against the real TeamLogger (by design).
-4. Scheduler + notifications + sound + tray (per-OS presentation). ✅ tray ring + countdown and hide-on-close done.
-5. ntfy phone module.
+4. ✅ Scheduler + notifications + sound + tray: pure `schedule.rs` rules + `runtime.rs`; manual take / resume /
+   ±extend; active break saved across restarts (quitting no longer ends a break). End-to-end tested on a
+   mock TeamLogger page (warn → take break → resume, to the second).
+5. ✅ ntfy phone module (`phone.rs`): live countdown, scheduled warning + repeating alarm, phone buttons,
+   IPv4-first. End-to-end tested on a throwaway topic.
 6. ✅ Setup screen (all 7 steps). Steps that need later milestones save the choice now and say so:
    "Connect now" (3), phone "Send test" (5). Windows/macOS TeamLogger paths are guesses until 7.
-7. Windows + macOS adapters (needs a Windows and a Mac with TeamLogger to verify the debug flag and paths).
-8. GitHub Actions: build `.msi`, `.dmg`, `.AppImage`/`.deb`; smoke tests on all three runners.
+7. ◐ Windows + macOS adapters written (`launch.rs`, `sound.rs`; type-checked for both targets) —
+   **still need a Windows PC and a Mac with TeamLogger to verify** the debug flag, paths, Connect, sounds.
+8. ✅ GitHub Actions: `ci.yml` (tests on Linux; compile + tests on macOS and Windows) and `release.yml`
+   (tag `v*` → `.msi`/`.exe`, universal `.dmg`, `.deb`/`.AppImage` on a draft release).
 9. Signing (Apple Developer ID + notarization; Windows code-signing cert optional).
 
 ## 6. Decisions still needed from the owner

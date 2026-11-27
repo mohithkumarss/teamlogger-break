@@ -57,8 +57,8 @@ export class TodayView {
     this.state = h("span", { class: "state off" }, h("span", { class: "dot" }), this.stateLbl);
     this.autoSwitch = switchEl(false, "Automatic breaks", (on) => app.setRunning(on));
     this.primary = h("button", { class: "btn primary", on: { click: () => this.onPrimary() } }, "Take a break now");
-    this.ext5 = h("button", { class: "btn soft", hidden: true, on: { click: () => app.notYet("Extend break") } }, "+5 min");
-    this.ext10 = h("button", { class: "btn soft", hidden: true, on: { click: () => app.notYet("Extend break") } }, "+10 min");
+    this.ext5 = h("button", { class: "btn soft", hidden: true, on: { click: () => app.extend(5) } }, "+5 min");
+    this.ext10 = h("button", { class: "btn soft", hidden: true, on: { click: () => app.extend(10) } }, "+10 min");
     this.skip = h("button", { class: "btn soft", title: "Skip today's remaining breaks", on: { click: () => app.skipToday() } }, "Skip today");
 
     this.strip.el.addEventListener("click", (e) => {
@@ -112,7 +112,7 @@ export class TodayView {
   }
 
   private onPrimary() {
-    if (app.status?.active) app.notYet("Resume work");
+    if (app.status?.active) app.resumeNow();
     else app.openBreakNow();
   }
 

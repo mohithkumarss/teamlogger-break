@@ -1,9 +1,10 @@
-//! Break schedule state (port of the scheduling parts of `BreakApp`).
+//! Break schedule (port of `BreakApp`'s scheduling).
 //!
-//! This milestone computes what the Today screen and tray show — next break,
-//! countdown target, progress through the work stretch — and handles the
-//! Auto switch and "skip today". Taking and resuming breaks in TeamLogger comes
-//! with the DevTools client (milestone 3).
+//! Pure logic: [`Scheduler::tick`] decides *what* should happen now — warn,
+//! begin a break, end it, "x minutes left" — and returns [`Action`]s. The
+//! runtime (`runtime.rs`) carries them out (notifications, sound, phone, and
+//! TeamLogger clicks behind the click guard). That split keeps every rule here
+//! unit-testable without TeamLogger.
 
 use chrono::{Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use serde::Serialize;
@@ -12,12 +13,10 @@ use std::collections::HashMap;
 use crate::activity::ActivityLog;
 use crate::store::{fmt12, fmt_range, Config};
 
-#[allow(dead_code)] // the 2-minute warning fires from the scheduler loop (milestone 4)
 pub const WARN_BEFORE: Duration = Duration::minutes(2);
 pub const LATE_GRACE: Duration = Duration::minutes(5);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(dead_code)] // Warned/Started/Done/Failed are set by the scheduler loop (milestone 4)
 pub enum Event {
     Warned,
     Started,
@@ -31,8 +30,27 @@ pub enum Event {
 pub struct Scheduler {
     pub running: bool,
     pub events: HashMap<(NaiveDate, NaiveTime), Event>,
-    /// The break in progress (start, end) — set once TeamLogger control lands.
+    /// The break in progress (start, end).
     pub active: Option<(NaiveDateTime, NaiveDateTime)>,
+    /// Break end whose "x minutes left" warning already went out.
+    pub warned_end: Option<NaiveDateTime>,
+}
+
+/// What the runtime should do now.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Action {
+    /// "Break in 2 minutes"
+    Warn { start: NaiveDateTime, end: NaiveDateTime },
+    /// Take a break in TeamLogger
+    Begin { start: NaiveDateTime, end: NaiveDateTime },
+    /// "x minutes left"
+    WarnEnd { end: NaiveDateTime, minutes: u32 },
+    /// Resume in TeamLogger; `early` = before the planned end
+    End { start: NaiveDateTime, end: NaiveDateTime, early: bool },
+    /// Break end moved (extended)
+    Extended { start: NaiveDateTime, end: NaiveDateTime, by: u32 },
+    /// A scheduled break was missed (computer asleep)
+    Missed { start: NaiveDateTime },
 }
 
 pub fn ts(dt: NaiveDateTime) -> f64 {
@@ -68,6 +86,85 @@ impl Scheduler {
                     self.events.entry((s.date(), s.time())).or_insert(Event::Missed);
                 }
             }
+        }
+    }
+
+    /// One step of the schedule (call about once a second).
+    pub fn tick(&mut self, cfg: &Config, now: NaiveDateTime) -> Vec<Action> {
+        let mut out = Vec::new();
+        if let Some((s, e)) = self.active {
+            if now >= e {
+                out.push(self.end_break(now).expect("active"));
+                return out;
+            }
+            let warn = cfg.phone.warn_min;
+            if warn > 0
+                && self.warned_end != Some(e)
+                && e - now <= Duration::minutes(warn as i64)
+                && (e - s) > Duration::minutes(warn as i64) + Duration::seconds(30)
+            {
+                self.warned_end = Some(e);
+                out.push(Action::WarnEnd { end: e, minutes: warn });
+            }
+            return out;
+        }
+        if !self.running {
+            return out;
+        }
+        for (s, e) in todays_breaks(cfg, now.date()) {
+            let key = (s.date(), s.time());
+            let state = self.events.get(&key).copied();
+            if matches!(state, Some(Event::Started | Event::Done | Event::Missed | Event::Skipped | Event::Failed)) {
+                continue;
+            }
+            if s - WARN_BEFORE <= now && now < s && state != Some(Event::Warned) {
+                self.events.insert(key, Event::Warned);
+                out.push(Action::Warn { start: s, end: e });
+            } else if s <= now && now < e {
+                if now - s > LATE_GRACE {
+                    self.events.insert(key, Event::Missed);
+                    out.push(Action::Missed { start: s });
+                } else {
+                    out.push(self.begin_break(s, e));
+                }
+                break;
+            }
+        }
+        out
+    }
+
+    pub fn begin_break(&mut self, start: NaiveDateTime, end: NaiveDateTime) -> Action {
+        self.events.insert((start.date(), start.time()), Event::Started);
+        self.active = Some((start, end));
+        self.warned_end = None;
+        Action::Begin { start, end }
+    }
+
+    /// End the break in progress (also used for "Resume now").
+    pub fn end_break(&mut self, now: NaiveDateTime) -> Option<Action> {
+        let (s, e) = self.active.take()?;
+        self.events.insert((s.date(), s.time()), Event::Done);
+        Some(Action::End { start: s, end: e, early: now < e - Duration::seconds(5) })
+    }
+
+    /// TeamLogger refused the click: forget the break.
+    pub fn fail_break(&mut self, start: NaiveDateTime) {
+        self.events.insert((start.date(), start.time()), Event::Failed);
+        if self.active.is_some_and(|(s, _)| s == start) {
+            self.active = None;
+        }
+    }
+
+    /// +N minutes: lengthen the break in progress, or start an N-minute break now.
+    pub fn extend(&mut self, minutes: u32, now: NaiveDateTime) -> Action {
+        match self.active {
+            Some((s, e)) => {
+                let e = e + Duration::minutes(minutes as i64);
+                self.active = Some((s, e));
+                self.warned_end = None;
+                Action::Extended { start: s, end: e, by: minutes }
+            }
+            None => self.begin_break(now, now + Duration::minutes(minutes as i64)),
         }
     }
 
@@ -205,6 +302,67 @@ mod tests {
 
     fn at(y: i32, mo: u32, d: u32, h: u32, mi: u32) -> NaiveDateTime {
         NaiveDate::from_ymd_opt(y, mo, d).unwrap().and_hms_opt(h, mi, 0).unwrap()
+    }
+
+    #[test]
+    fn tick_warns_begins_and_ends() {
+        let mut c = cfg();
+        c.phone.warn_min = 5;
+        let mut s = Scheduler::new(true);
+        let d = |h, m| at(2026, 11, 25, h, m);
+        assert!(s.tick(&c, d(12, 0)).is_empty());
+        assert_eq!(s.tick(&c, d(12, 58)), vec![Action::Warn { start: d(13, 0), end: d(13, 40) }]);
+        assert!(s.tick(&c, d(12, 59)).is_empty(), "warn only once");
+        assert_eq!(s.tick(&c, d(13, 0)), vec![Action::Begin { start: d(13, 0), end: d(13, 40) }]);
+        assert!(s.tick(&c, d(13, 10)).is_empty());
+        assert_eq!(s.tick(&c, d(13, 35)), vec![Action::WarnEnd { end: d(13, 40), minutes: 5 }]);
+        assert!(s.tick(&c, d(13, 36)).is_empty(), "minutes-left only once");
+        assert_eq!(s.tick(&c, d(13, 40)), vec![Action::End { start: d(13, 0), end: d(13, 40), early: false }]);
+        assert!(s.active.is_none());
+        assert!(s.tick(&c, d(13, 41)).is_empty(), "a finished break doesn't restart");
+    }
+
+    #[test]
+    fn late_breaks_are_missed_not_taken() {
+        let c = cfg();
+        let mut s = Scheduler::new(true);
+        let d = |h, m| at(2026, 11, 25, h, m);
+        assert_eq!(s.tick(&c, d(13, 4)), vec![Action::Begin { start: d(13, 0), end: d(13, 40) }], "within 5 min grace");
+        let mut s = Scheduler::new(true);
+        assert_eq!(s.tick(&c, d(13, 6)), vec![Action::Missed { start: d(13, 0) }]);
+        assert!(s.active.is_none());
+    }
+
+    #[test]
+    fn off_or_skipped_does_nothing() {
+        let c = cfg();
+        let d = |h, m| at(2026, 11, 25, h, m);
+        assert!(Scheduler::new(false).tick(&c, d(13, 0)).is_empty());
+        let mut s = Scheduler::new(true);
+        s.skip_today(&c, d(12, 0));
+        assert!(s.tick(&c, d(13, 0)).is_empty());
+        // Saturday: not a break day
+        assert!(Scheduler::new(true).tick(&c, at(2026, 11, 28, 13, 0)).is_empty());
+    }
+
+    #[test]
+    fn manual_break_extend_and_early_resume() {
+        let c = cfg();
+        let d = |h, m| at(2026, 11, 25, h, m);
+        let mut s = Scheduler::new(false);
+        assert_eq!(s.extend(15, d(10, 0)), Action::Begin { start: d(10, 0), end: d(10, 15) });
+        assert_eq!(s.extend(5, d(10, 5)), Action::Extended { start: d(10, 0), end: d(10, 20), by: 5 });
+        let acts = s.tick(&c, d(10, 16));
+        assert!(!acts.iter().any(|a| matches!(a, Action::End { .. })), "extended break keeps going");
+        assert_eq!(acts, vec![Action::WarnEnd { end: d(10, 20), minutes: 5 }], "warning follows the new end");
+        assert_eq!(s.end_break(d(10, 10)), Some(Action::End { start: d(10, 0), end: d(10, 20), early: true }));
+        assert_eq!(s.end_break(d(10, 11)), None);
+        // a refused click forgets the break
+        let mut s = Scheduler::new(true);
+        s.tick(&c, d(13, 0));
+        s.fail_break(d(13, 0));
+        assert!(s.active.is_none());
+        assert_eq!(s.today_list(&c, d(13, 1))[1].state, "failed");
     }
 
     #[test]

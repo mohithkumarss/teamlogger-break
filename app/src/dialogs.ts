@@ -78,7 +78,7 @@ export function breakNowDialog() {
     h("h2", { class: "dialog-title" }, "Take a break"),
     h("div", { class: "sub" }, "How long would you like?"),
     h("div", { class: "wrap" }, ...[5, 10, 15, 20, 30, 45, 60].map((m) =>
-      h("button", { class: "btn preset", on: { click: () => { s.close(); app.notYet("Take a break now"); } } }, `${m} min`))),
+      h("button", { class: "btn preset", on: { click: () => { s.close(); app.breakNow(m); } } }, `${m} min`))),
     h("div", { class: "tiny" }, "You can extend it any time — here or from your phone."),
   );
 }
@@ -109,7 +109,7 @@ export function phoneSetup() {
       h("br"), h("br"),
       "Messages go through ntfy.sh and contain only break times. Keep the topic private — anyone who knows it could see your breaks or press the buttons."),
     h("div", { class: "row", style: "gap:10px" },
-      h("button", { class: "btn primary", style: "flex:1", on: { click: () => app.notYet("Send test") } }, "Send test"),
+      h("button", { class: "btn primary", style: "flex:1", on: { click: () => app.phoneTest() } }, "Send test"),
       h("button", { class: "btn soft", on: { click: async () => {
         try {
           app.setConfig(await api.new_phone_topic());
@@ -174,7 +174,7 @@ export function openSettings(initial = "schedule") {
       return [
         h("div", { class: "sub", style: "padding:0 4px" }, "Live countdown and an alarm on your phone, via the free ntfy app."),
         group(null,
-          prow("Phone notifications", "Sending arrives with the phone module", switchEl(p.enabled, "Phone notifications", (on) => app.update({ phone: { enabled: on } }))),
+          prow("Phone notifications", "Countdown, warning and alarm on your phone", switchEl(p.enabled, "Phone notifications", (on) => app.update({ phone: { enabled: on } }))),
           prow("Set up your phone", `Topic: ${p.topic}`, null, phoneSetup)),
         group("Alarm",
           prow("Warn before the break ends", null, select(p.warn_min, [[0, "Off"], [2, "2 minutes"], [5, "5 minutes"], [10, "10 minutes"]], (v) => app.update({ phone: { warn_min: v } }))),
@@ -194,7 +194,7 @@ export function openSettings(initial = "schedule") {
       api.teamlogger_status().then((st) => {
         location.textContent = st.install ? st.install.path : "Not found — choose it";
         location.title = location.textContent;
-        connection.textContent = st.connected ? "Connected" : "Not connected — TeamLogger control arrives in the next milestone";
+        connection.textContent = st.connected ? "Connected" : "Not connected — press Connect (TeamLogger restarts once)";
         browse.onclick = async () => {
           if (!inTauri) return toast("Browse works in the desktop app");
           try {

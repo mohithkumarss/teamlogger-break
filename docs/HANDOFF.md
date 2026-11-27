@@ -38,6 +38,12 @@
   the timeline. Use `npm run tauri:demo` (separate `dev-data/`) while the Python app is the daily driver.
 - DevTools HTTP must be HTTP/1.1 (`Connection: close`): newer Chromium silently drops HTTP/1.0 requests.
 
+## Release + license
+
+- License: **PolyForm Internal Use 1.0.0** (`LICENSE.md`) — source-available, *not* open source:
+  use and internal changes allowed, no redistribution. Call it "source-available" in announcements.
+- Releasing and signing: [RELEASING.md](RELEASING.md).
+
 ## Known limitations / gotchas
 
 - Font: Google Sans Flex is the default face everywhere. Tauri app: bundled in the web UI. Linux GTK app:
@@ -45,7 +51,8 @@
   Pango ≥ 1.56's add_font_file — **not yet checked on a Linux machine**.
 
 - After each login TeamLogger starts without the debug port → press **Connect** once (TeamLogger restarts).
-- Restarting this app **during a break** resumes TeamLogger (quit ends the break) — avoid, or change `quit_app`.
+- Python app: restarting it **during a break** resumes TeamLogger (quit ends the break). The Tauri app
+  doesn't — it saves the active break to `state.json` and picks it up again.
 - Stats before 27 Nov 2026 use the recorded estimate; from then on the TeamLogger total.
 - `teamlogger_break.py` contains a CLI scheduler too (older, still works).
 

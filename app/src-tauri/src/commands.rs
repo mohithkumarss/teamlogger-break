@@ -226,6 +226,57 @@ pub fn activity_log(state: State<AppState>) -> Vec<String> {
     state.log_lines.lock().unwrap().clone()
 }
 
+// ---------------------------------------------------------------- breaks
+
+/// Take a break now for `minutes`.
+#[tauri::command]
+pub fn break_now(app: tauri::AppHandle, minutes: u32) -> Res<Status> {
+    crate::runtime::break_now(&app, minutes.clamp(1, 240))?;
+    Ok(current_status(&app))
+}
+
+/// End the break in progress now.
+#[tauri::command]
+pub fn resume_now(app: tauri::AppHandle) -> Res<Status> {
+    crate::runtime::resume_now(&app)?;
+    Ok(current_status(&app))
+}
+
+/// +N minutes (or a new N-minute break when not on one).
+#[tauri::command]
+pub fn extend_break(app: tauri::AppHandle, minutes: u32) -> Status {
+    crate::runtime::extend(&app, minutes.clamp(1, 120));
+    current_status(&app)
+}
+
+fn current_status(app: &tauri::AppHandle) -> Status {
+    use tauri::Manager;
+    let state = app.state::<AppState>();
+    let cfg = state.cfg.lock().unwrap();
+    let st = state.sched.lock().unwrap().status(&cfg, &state.log, now());
+    st
+}
+
+/// Send a test notification to the phone (turns phone alerts on).
+#[tauri::command]
+pub fn phone_test(app: tauri::AppHandle) -> Res<Config> {
+    use tauri::Manager;
+    let state = app.state::<AppState>();
+    let cfg = {
+        let mut cfg = state.cfg.lock().unwrap();
+        if !cfg.phone.enabled {
+            let mut new = cfg.clone();
+            new.phone.enabled = true;
+            save(&state, &new)?;
+            *cfg = new;
+        }
+        cfg.clone()
+    };
+    state.phone.get().ok_or("Phone alerts aren't ready yet")?.send_test(&cfg.phone)?;
+    state.add_log("Phone: test sent");
+    Ok(cfg)
+}
+
 /// Actions that need TeamLogger control, the tray or the phone module, which
 /// later milestones add. Returns an error the UI shows as a toast.
 #[tauri::command]

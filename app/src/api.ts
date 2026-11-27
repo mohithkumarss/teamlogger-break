@@ -85,6 +85,11 @@ export interface Api {
   teamlogger_status(): Promise<TeamLoggerStatus>;
   /** restart TeamLogger once with its local control port (needs consent) */
   connect_teamlogger(): Promise<string>;
+  break_now(minutes: number): Promise<Status>;
+  resume_now(): Promise<Status>;
+  extend_break(minutes: number): Promise<Status>;
+  /** send a test notification to the phone (turns phone alerts on) */
+  phone_test(): Promise<Config>;
   set_teamlogger_path(path: string | null): Promise<Config>;
   set_breaks(breaks: Break[]): Promise<Config>;
   suggested_breaks(): Promise<Break[]>;
@@ -112,6 +117,10 @@ async function tauriApi(): Promise<Api> {
     not_yet: (action) => call("not_yet", { action }),
     teamlogger_status: () => call("teamlogger_status"),
     connect_teamlogger: () => call("connect_teamlogger"),
+    break_now: (minutes) => call("break_now", { minutes }),
+    resume_now: () => call("resume_now"),
+    extend_break: (minutes) => call("extend_break", { minutes }),
+    phone_test: () => call("phone_test"),
     set_teamlogger_path: (path) => call("set_teamlogger_path", { path }),
     set_breaks: (breaks) => call("set_breaks", { breaks }),
     suggested_breaks: () => call("suggested_breaks"),
