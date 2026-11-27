@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TeamLogger Break Scheduler — GNOME app (GTK 4 + libadwaita).
+ZenMetrics — GNOME app (GTK 4 + libadwaita).
 
 Pick break windows (e.g. 1:00 PM – 1:40 PM) and days, and the app:
   * shows a live countdown to the next break (and in the top bar),
@@ -52,7 +52,7 @@ APP_ICON = next((p for p in (os.path.join(HERE, "data", "teamlogger-break.svg"),
                 os.path.join(HERE, "data", "teamlogger-break.svg"))
 DESKTOP_ENTRY = """[Desktop Entry]
 Type=Application
-Name=TeamLogger Break
+Name=ZenMetrics
 Comment=Take and resume TeamLogger breaks on a schedule
 Exec=/usr/bin/python3 "{script}"{args}
 Icon={icon}
@@ -136,7 +136,7 @@ def parse_hm(s):
 
 def notify(title, body):
     try:
-        subprocess.Popen(["notify-send", "-a", "TeamLogger Break", title, body],
+        subprocess.Popen(["notify-send", "-a", "ZenMetrics", title, body],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except OSError:
         pass
@@ -264,7 +264,7 @@ def build_app_classes():
             self.win.set_visible(False)
             if not self.hide_hint_shown:
                 self.hide_hint_shown = True
-                notify("TeamLogger Break is still running",
+                notify("ZenMetrics is still running",
                        "It keeps working in the background. Open it from the top-bar icon or the app menu.")
 
         def quit_app(self):
@@ -510,7 +510,7 @@ def build_app_classes():
                     else:
                         GLib.idle_add(self.log, "TeamLogger not connected after login.")
                         notify("TeamLogger isn't connected",
-                               "Open TeamLogger Break and press Connect so breaks can be clicked.")
+                               "Open ZenMetrics and press Connect so breaks can be clicked.")
             threading.Thread(target=work, daemon=True).start()
 
         def set_connected(self, ok):
@@ -564,7 +564,7 @@ def build_app_classes():
                     else:
                         reason = res and res.get("reason")
                         self.log(f"FAILED: {reason}")
-                        notify("TeamLogger Break", f"Couldn't click the button: {reason}")
+                        notify("ZenMetrics", f"Couldn't click the button: {reason}")
                         self.win.toast("Couldn't click TeamLogger — see Activity Log")
                     if on_done:
                         on_done(ok)
@@ -749,7 +749,7 @@ def build_app_classes():
 
 
 def main():
-    p = argparse.ArgumentParser(description="TeamLogger Break Scheduler")
+    p = argparse.ArgumentParser(description="ZenMetrics")
     p.add_argument("--hidden", action="store_true", help="start in the background (no window)")
     p.add_argument("--quit", action="store_true", help="stop the running instance")
     args = p.parse_args()
@@ -766,7 +766,7 @@ def main():
                          env={**os.environ, "TLB_FOREGROUND": "1"},
                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True)
-        print("TeamLogger Break is running in the background. You can close this terminal.")
+        print("ZenMetrics is running in the background. You can close this terminal.")
         return
     tui.register_fonts_early()   # before GTK loads, so Google Sans Flex is the default face
     BreakApp = build_app_classes()

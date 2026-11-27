@@ -219,7 +219,7 @@ export function openSettings(initial = "schedule") {
           h("div", { class: "prow" }, h("div", { class: "text" }, h("span", { class: "body-strong" }, "TeamLogger app"), location), browse),
           h("div", { class: "prow" }, h("div", { class: "text" }, h("span", { class: "body-strong" }, "Connection"), connection),
             h("button", { class: "btn soft", style: "min-height:34px", on: { click: () => app.connect() } }, "Connect")),
-          prow("Start at login", "Opens TeamLogger Break when you log in", login),
+          prow("Start at login", "Opens ZenMetrics when you log in", login),
           prow("Test mode", "Log what would happen without clicking TeamLogger", switchEl(c.dry_run, "Test mode", (on) => app.update({ dry_run: on }))),
           prow("Activity log", null, null, showLog),
           prow("Run setup again", "Welcome, TeamLogger, permissions, breaks, phone", null, () => { s.close(); app.openSetup(); })),

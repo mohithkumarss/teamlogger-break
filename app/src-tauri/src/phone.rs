@@ -25,7 +25,7 @@ use std::time::Duration;
 use crate::schedule::ts;
 use crate::store::{fmt12, Phone as PhoneCfg};
 
-const UA: &str = concat!("teamlogger-break/", env!("CARGO_PKG_VERSION"));
+const UA: &str = concat!("zenmetrics/", env!("CARGO_PKG_VERSION"));
 /// ntfy needs at least 10 s for scheduled delivery.
 const MIN_DELAY: f64 = 12.0;
 
@@ -244,7 +244,7 @@ impl Phone {
         }
         let mut pc = pc.clone();
         pc.enabled = true; // a test is explicit
-        self.publish(&pc, &format!("test{}", chrono::Local::now().timestamp()), "TeamLogger Break is connected",
+        self.publish(&pc, &format!("test{}", chrono::Local::now().timestamp()), "ZenMetrics is connected",
                      "Phone notifications work. You'll get a countdown and an alarm for each break.", 3,
                      &["white_check_mark"], vec![button(&pc, "Test a button", "ping", true)], None);
         Ok(())

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Top-bar (tray) icon for the TeamLogger Break Scheduler.
+Top-bar (tray) icon for ZenMetrics.
 
 Started automatically by teamlogger_break_gui.py. Talks to it over a local
 Unix socket: shows the current status, opens the window, or quits the app.
@@ -91,7 +91,7 @@ class Tray:
         self.ind = AppIndicator.Indicator.new_with_path(
             "teamlogger-break", first, AppIndicator.IndicatorCategory.APPLICATION_STATUS, ICON_DIR)
         self.ind.set_status(AppIndicator.IndicatorStatus.ACTIVE)
-        self.ind.set_title("TeamLogger Break")
+        self.ind.set_title("ZenMetrics")
 
         menu = Gtk.Menu()
         self.status_item = Gtk.MenuItem(label="Starting…")
@@ -173,7 +173,7 @@ class Tray:
     def set_icon(self, name):
         if name != getattr(self, "_last_icon", None):
             self._last_icon = name
-            self.ind.set_icon_full(name, "TeamLogger Break")
+            self.ind.set_icon_full(name, "ZenMetrics")
 
     def sweep(self, frac, mode):
         """Spin the ring from empty to its current position (~0.6 s)."""

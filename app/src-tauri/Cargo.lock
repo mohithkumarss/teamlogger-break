@@ -4215,27 +4215,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "teamlogger-break"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "dirs 6.0.0",
- "getrandom 0.3.4",
- "qrcode",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-autostart",
- "tauri-plugin-dialog",
- "tauri-plugin-notification",
- "tauri-plugin-single-instance",
- "tempfile",
- "tungstenite",
- "ureq",
-]
-
-[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5558,6 +5537,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2da34e7164b75d803c3197b86e6cf61b874106fbd472c5082575a8bc5fbd0907"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "zenmetrics"
+version = "0.2.0"
+dependencies = [
+ "chrono",
+ "dirs 6.0.0",
+ "getrandom 0.3.4",
+ "qrcode",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-autostart",
+ "tauri-plugin-dialog",
+ "tauri-plugin-notification",
+ "tauri-plugin-single-instance",
+ "tempfile",
+ "tungstenite",
+ "ureq",
 ]
 
 [[package]]

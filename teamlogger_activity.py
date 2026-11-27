@@ -1,5 +1,5 @@
 """
-Activity timeline for the TeamLogger Break Scheduler.
+Activity timeline for ZenMetrics.
 
 ActivityLog   - stores the day as segments in ~/.local/share/teamlogger-break/
 sample_state  - works out what you're doing right now

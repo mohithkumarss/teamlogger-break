@@ -97,10 +97,10 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let state = app.state::<AppState>();
     let running = state.sched.lock().unwrap().running;
     let status_item = MenuItem::with_id(app, "status", "Starting…", false, None::<&str>)?;
-    let open = MenuItem::with_id(app, "open", "Open TeamLogger Break", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", "Open ZenMetrics", true, None::<&str>)?;
     let auto = CheckMenuItem::with_id(app, "auto", "Automatic breaks", true, running, None::<&str>)?;
     let skip = MenuItem::with_id(app, "skip", "Skip today's remaining breaks", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "Quit TeamLogger Break", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "Quit ZenMetrics", true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
         &[&status_item, &PredefinedMenuItem::separator(app)?, &open, &auto, &skip, &PredefinedMenuItem::separator(app)?, &quit],
@@ -109,7 +109,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let tray = TrayIconBuilder::with_id("main")
         .icon(Image::new_owned(ring(0.0, "off", template, false), SIZE, SIZE))
         .icon_as_template(template)
-        .tooltip("TeamLogger Break")
+        .tooltip("ZenMetrics")
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(|app, ev| {

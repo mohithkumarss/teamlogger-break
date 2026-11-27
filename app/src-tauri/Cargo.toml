@@ -1,12 +1,12 @@
 [package]
-name = "teamlogger-break"
-version = "0.1.0"
+name = "zenmetrics"
+version = "0.2.0"
 description = "Scheduled breaks for the TeamLogger desktop client (unofficial)"
 edition = "2021"
 
 [lib]
 # The `_lib` suffix avoids a name clash with the binary on Windows.
-name = "teamlogger_break_lib"
+name = "zenmetrics_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

@@ -52,7 +52,7 @@ jobs:
           projectPath: app
           # from the app's version, so manual runs and tag pushes both give "v0.1.0"-style releases
           tagName: v__VERSION__
-          releaseName: "TeamLogger Break v__VERSION__"
+          releaseName: "ZenMetrics v__VERSION__"
           releaseBody: "Unofficial — not made by or affiliated with TeamLogger. See the README for setup."
           releaseDraft: true
           prerelease: false

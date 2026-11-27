@@ -1,4 +1,4 @@
-//! TeamLogger Break — cross-platform core (Tauri v2).
+//! ZenMetrics — cross-platform core (Tauri v2).
 //!
 //! Milestones 1–2 and the first-run setup (6) of docs/CROSS_PLATFORM_PLAN.md:
 //! the app shell, settings store, activity timeline, statistics and setup. TeamLogger control (DevTools),
@@ -129,7 +129,7 @@ pub fn run() {
             commands::phone_qr,
         ])
         .build(tauri::generate_context!())
-        .expect("error while starting TeamLogger Break")
+        .expect("error while starting ZenMetrics")
         .run(|_app, _event| {
             // macOS: clicking the Dock icon brings the hidden window back
             #[cfg(target_os = "macos")]
@@ -189,7 +189,7 @@ fn hint_still_running(app: &tauri::AppHandle) {
     let _ = app
         .notification()
         .builder()
-        .title("TeamLogger Break is still running")
+        .title("ZenMetrics is still running")
         .body(format!("Your breaks keep running. Open it again from the {place}."))
         .show();
 }

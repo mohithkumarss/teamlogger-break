@@ -5,9 +5,11 @@
 //! `login`, `theme` and `phone`. Keys this version doesn't know are kept as-is.
 //!
 //! Locations (`dirs` crate):
-//!   Linux    ~/.config/teamlogger-break/config.json, ~/.local/share/teamlogger-break/   (same as the Python app)
-//!   macOS    ~/Library/Application Support/teamlogger-break/
-//!   Windows  %APPDATA%\teamlogger-break\
+//!   Linux    ~/.config/zenmetrics/config.json, ~/.local/share/zenmetrics/
+//!   macOS    ~/Library/Application Support/zenmetrics/
+//!   Windows  %APPDATA%\zenmetrics\
+//! The first time, settings and history are copied from the folders of the old
+//! name (`teamlogger-break`, also used by the Python app); the old folders stay.
 //! `TLB_CONFIG_DIR` / `TLB_DATA_DIR` override them (used for demo data in development).
 
 use chrono::NaiveTime;
@@ -17,7 +19,9 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-pub const APP_DIR: &str = "teamlogger-break";
+pub const APP_DIR: &str = "zenmetrics";
+/// The folder name before the app was renamed (v0.1.0, and the Python app).
+pub const LEGACY_APP_DIR: &str = "teamlogger-break";
 pub const DEFAULT_PORT: u16 = 9333;
 pub const DEFAULT_SERVER: &str = "https://ntfy.sh";
 
@@ -31,12 +35,43 @@ impl Paths {
     pub fn resolve() -> Self {
         let from_env = |key: &str| std::env::var_os(key).filter(|v| !v.is_empty()).map(PathBuf::from);
         let home = || dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-        let config_dir = from_env("TLB_CONFIG_DIR")
-            .unwrap_or_else(|| dirs::config_dir().unwrap_or_else(home).join(APP_DIR));
-        let data_dir = from_env("TLB_DATA_DIR")
-            .unwrap_or_else(|| dirs::data_dir().unwrap_or_else(home).join(APP_DIR));
+        let config_dir = from_env("TLB_CONFIG_DIR").unwrap_or_else(|| {
+            let base = dirs::config_dir().unwrap_or_else(home);
+            adopt_legacy(&base.join(LEGACY_APP_DIR), &base.join(APP_DIR));
+            base.join(APP_DIR)
+        });
+        let data_dir = from_env("TLB_DATA_DIR").unwrap_or_else(|| {
+            let base = dirs::data_dir().unwrap_or_else(home);
+            adopt_legacy(&base.join(LEGACY_APP_DIR), &base.join(APP_DIR));
+            base.join(APP_DIR)
+        });
         Paths { config_file: config_dir.join("config.json"), data_dir }
     }
+}
+
+/// Copy `old` to `new` once, if only `old` exists. Copying (not moving) leaves
+/// the old folder for the Python app. On failure the app starts fresh instead.
+pub fn adopt_legacy(old: &Path, new: &Path) {
+    if new.exists() || !old.is_dir() {
+        return;
+    }
+    if copy_dir(old, new).is_err() {
+        let _ = fs::remove_dir_all(new);
+    }
+}
+
+fn copy_dir(from: &Path, to: &Path) -> io::Result<()> {
+    fs::create_dir_all(to)?;
+    for entry in fs::read_dir(from)? {
+        let entry = entry?;
+        let target = to.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_dir(&entry.path(), &target)?;
+        } else {
+            fs::copy(entry.path(), target)?;
+        }
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -293,6 +328,24 @@ mod tests {
 
     fn t(s: &str) -> NaiveTime {
         parse_hm(s).unwrap()
+    }
+
+    #[test]
+    fn adopts_the_old_folder_once() {
+        let dir = tempfile::tempdir().unwrap();
+        let (old, new) = (dir.path().join("teamlogger-break"), dir.path().join("zenmetrics"));
+        fs::create_dir_all(old.join("tray-icons")).unwrap();
+        fs::write(old.join("config.json"), "{}").unwrap();
+        fs::write(old.join("tray-icons/a.png"), "x").unwrap();
+        adopt_legacy(&old, &new);
+        assert_eq!(fs::read_to_string(new.join("config.json")).unwrap(), "{}");
+        assert!(new.join("tray-icons/a.png").exists());
+        assert!(old.join("config.json").exists(), "old folder is left for the Python app");
+        // never overwrites the new folder once it exists
+        fs::write(new.join("config.json"), "{\"new\":1}").unwrap();
+        fs::write(old.join("config.json"), "{\"old\":1}").unwrap();
+        adopt_legacy(&old, &new);
+        assert_eq!(fs::read_to_string(new.join("config.json")).unwrap(), "{\"new\":1}");
     }
 
     #[test]

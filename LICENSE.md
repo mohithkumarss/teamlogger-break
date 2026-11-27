@@ -1,4 +1,4 @@
-Required Notice: Copyright 2026 Mohith Kumar S S (https://github.com/vyaca-corp/teamlogger-break)
+Required Notice: Copyright 2026 Mohith Kumar S S (https://github.com/vyaca-corp/zenmetrics)
 
 # PolyForm Internal Use License 1.0.0
 

@@ -28,7 +28,7 @@ chmod 755 "$PKG/usr/bin/teamlogger-break"
 cat > "$PKG/usr/share/applications/teamlogger-break.desktop" <<'DT'
 [Desktop Entry]
 Type=Application
-Name=TeamLogger Break
+Name=ZenMetrics
 Comment=Take and resume TeamLogger breaks on a schedule
 Exec=/usr/bin/python3 "/opt/teamlogger-break/teamlogger_break_gui.py"
 Icon=teamlogger-break

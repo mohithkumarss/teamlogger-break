@@ -51,7 +51,7 @@ export function runSetup(root: HTMLElement): Promise<void> {
         next: "Get started",
         render: () => [
           h("img", { class: "setup-logo", src: logoUrl, alt: "", width: 72, height: 72 }),
-          h("h1", { class: "setup-title" }, "Welcome to TeamLogger Break"),
+          h("h1", { class: "setup-title" }, "Welcome to ZenMetrics"),
           h("p", { class: "sub setup-lead" }, "Breaks on a schedule, for the TeamLogger desktop app."),
           h("div", { class: "points" },
             point("coffee", "Real breaks in TeamLogger", "At the times you choose it presses TeamLogger's Take a break, and Resume when the break ends — so they're recorded as breaks."),
@@ -113,7 +113,7 @@ export function runSetup(root: HTMLElement): Promise<void> {
               point("lock", "Only this computer can reach it", `The port listens on this computer only (127.0.0.1). Nothing on your network or the internet can use it.`),
               point("check", "Breaks are normal breaks", "TeamLogger records them exactly as if you had clicked the buttons yourself.")),
             h("label", { class: "consent", for: "consent" }, consent,
-              h("span", {}, "I agree that TeamLogger Break may restart TeamLogger with a local control port and press its break buttons.")),
+              h("span", {}, "I agree that ZenMetrics may restart TeamLogger with a local control port and press its break buttons.")),
             live,
             h("p", { class: "tiny" }, "Your choice is saved. You can connect later and change it any time in Settings."),
           ];
@@ -127,7 +127,7 @@ export function runSetup(root: HTMLElement): Promise<void> {
           const draw = (p: Permission) => clear(box,
             statusRow(p === "granted" ? true : p === "denied" ? false : null,
               p === "granted" ? "Notifications are on" : p === "denied" ? "Notifications are blocked" : "Notifications aren't on yet",
-              p === "denied" ? "Turn them on for TeamLogger Break in your system's notification settings"
+              p === "denied" ? "Turn them on for ZenMetrics in your system's notification settings"
                 : "A heads-up 2 minutes before each break, and when it ends",
               p === "granted"
                 ? h("button", { class: "btn soft", on: { click: () => { sendNotification("Break in 2 minutes", "1:00 – 1:40 PM · this is a test"); toast("Test notification sent"); } } }, "Send test")
@@ -210,7 +210,7 @@ export function runSetup(root: HTMLElement): Promise<void> {
       },
       {
         title: "Finish",
-        next: "Start using TeamLogger Break",
+        next: "Start using ZenMetrics",
         render: () => {
           const login = switchEl(app.cfg.login, "Start at login", async (on) => {
             try {
@@ -244,7 +244,7 @@ export function runSetup(root: HTMLElement): Promise<void> {
     const skip = h("button", { class: "btn quiet", on: { click: () => go(1) } }, "Skip");
     const next = h("button", { class: "btn primary", on: { click: () => go(1) } });
     const counter = h("span", { class: "tiny" });
-    const card = h("div", { class: "setup-card", role: "dialog", "aria-modal": "true", "aria-label": "Set up TeamLogger Break" },
+    const card = h("div", { class: "setup-card", role: "dialog", "aria-modal": "true", "aria-label": "Set up ZenMetrics" },
       h("div", { class: "row" }, dots, h("span", { class: "spacer" }), counter),
       body,
       h("div", { class: "setup-nav" }, back, h("span", { class: "spacer" }), skip, next));

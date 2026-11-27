@@ -1,5 +1,5 @@
 """
-Phone notifications for the TeamLogger Break Scheduler, via ntfy (https://ntfy.sh).
+Phone notifications for ZenMetrics, via ntfy (https://ntfy.sh).
 
 Install the free "ntfy" app on your phone and subscribe to your topic (shown in
 the app's Phone settings). Then, for every break:
@@ -271,7 +271,7 @@ class Phone:
             self.delete(seq)
 
     def send_test(self):
-        self.publish(f"test{int(time.time())}", "TeamLogger Break is connected",
+        self.publish(f"test{int(time.time())}", "ZenMetrics is connected",
                      "Phone notifications work. You'll get a countdown and an alarm for each break.",
                      priority=3, tags=["white_check_mark"],
                      actions=[self._button("Test a button", "ping")])

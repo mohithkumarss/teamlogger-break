@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    teamlogger_break_lib::run()
+    zenmetrics_lib::run()
 }

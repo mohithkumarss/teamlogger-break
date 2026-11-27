@@ -1,4 +1,4 @@
-# TeamLogger Break — cross-platform app (Tauri v2)
+# ZenMetrics — cross-platform app (Tauri v2)
 
 The Windows / macOS / Linux version from [../docs/CROSS_PLATFORM_PLAN.md](../docs/CROSS_PLATFORM_PLAN.md).
 **Status: feature-complete on Linux** (milestones 1–6, 8). It takes and resumes breaks in TeamLogger on
@@ -42,9 +42,9 @@ Real data locations (shared with the Linux app on Linux):
 
 | OS | Settings | Timeline |
 |---|---|---|
-| Linux | `~/.config/teamlogger-break/config.json` | `~/.local/share/teamlogger-break/` |
-| macOS | `~/Library/Application Support/teamlogger-break/config.json` | same folder |
-| Windows | `%APPDATA%\teamlogger-break\config.json` | same folder |
+| Linux | `~/.config/zenmetrics/config.json` | `~/.local/share/zenmetrics/` |
+| macOS | `~/Library/Application Support/zenmetrics/config.json` | same folder |
+| Windows | `%APPDATA%\zenmetrics\config.json` | same folder |
 
 `TLB_CONFIG_DIR` / `TLB_DATA_DIR` override them. Copying the Linux files to these folders
 brings history and the phone topic along.

@@ -1,5 +1,5 @@
 """
-Interface for TeamLogger Break (GTK 4 + libadwaita).
+Interface for ZenMetrics (GTK 4 + libadwaita).
 
 Layout — a desktop "bento" dashboard that fits without scrolling (~920×700):
 
@@ -1027,7 +1027,7 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
     # ------------------------------------------------------------ main window
     class MainWindow(Adw.ApplicationWindow):
         def __init__(self, app):
-            super().__init__(application=app, title="TeamLogger Break", css_classes=["tlb"])
+            super().__init__(application=app, title="ZenMetrics", css_classes=["tlb"])
             self.app = app
             self.settings_dlg = None
             self.set_default_size(960, 740)

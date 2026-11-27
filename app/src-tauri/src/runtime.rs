@@ -104,7 +104,7 @@ fn click_async(app: &AppHandle, what: &'static str, minutes: u32, on_fail: impl 
             Some(c) => st.add_log(format!("Test mode — {} (nothing sent to TeamLogger)", c.label)),
             None => {
                 st.add_log(format!("FAILED to click in TeamLogger: {last}"));
-                notify(&app, "TeamLogger Break", &format!("Couldn't click in TeamLogger: {last}"));
+                notify(&app, "ZenMetrics", &format!("Couldn't click in TeamLogger: {last}"));
                 on_fail(&app, last);
             }
         }

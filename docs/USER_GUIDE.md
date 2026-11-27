@@ -1,4 +1,4 @@
-# TeamLogger Break — user guide
+# ZenMetrics — user guide
 
 Breaks on a schedule, for the TeamLogger desktop app. *Unofficial — not affiliated with TeamLogger.*
 
@@ -16,30 +16,30 @@ Breaks on a schedule, for the TeamLogger desktop app. *Unofficial — not affili
 ## Before you start
 
 - The **TeamLogger desktop app** must be installed and signed in on the same computer.
-- A break taken by TeamLogger Break is a **real break in TeamLogger** — it's recorded exactly as if
+- A break taken by ZenMetrics is a **real break in TeamLogger** — it's recorded exactly as if
   you had clicked *Take a break* yourself. Use it the way your employer's break rules allow.
 - Want to try it without anything happening in TeamLogger? Turn on **Test mode** right after setup
   (Settings → General). Everything runs, but nothing is clicked.
 
 ## Install
 
-Download the installer for your system from the **[latest release](https://github.com/vyaca-corp/teamlogger-break/releases/latest)**
+Download the installer for your system from the **[latest release](https://github.com/vyaca-corp/zenmetrics/releases/latest)**
 (scroll to **Assets**), or use the direct links in the [README](../README.md#install).
 
 ### Windows
 
-1. Download **`TeamLogger.Break_<version>_x64-setup.exe`** (or the `.msi`).
+1. Download **`ZenMetrics_<version>_x64-setup.exe`** (or the `.msi`).
 2. Open it. Windows SmartScreen may say *"Windows protected your PC"* because the installer isn't
    signed yet — click **More info → Run anyway**.
-3. Follow the installer, then open **TeamLogger Break** from the Start menu.
+3. Follow the installer, then open **ZenMetrics** from the Start menu.
 
 The countdown lives in the **system tray** (bottom right; it may be under the **^** arrow — drag it
 out to keep it visible). Hover it to see the time left.
 
 ### macOS
 
-1. Download **`TeamLogger.Break_<version>_universal.dmg`** (works on Apple Silicon and Intel).
-2. Open it and drag **TeamLogger Break** into **Applications**.
+1. Download **`ZenMetrics_<version>_universal.dmg`** (works on Apple Silicon and Intel).
+2. Open it and drag **ZenMetrics** into **Applications**.
 3. The first time, **right-click (or Control-click) the app → Open → Open**. macOS asks this once
    because the app isn't notarized yet. (If it still refuses: System Settings → Privacy & Security →
    *Open Anyway*.)
@@ -49,20 +49,20 @@ The countdown lives in the **menu bar** (top right) as a small ring with the tim
 
 ### Linux
 
-**Ubuntu / Debian** — download **`TeamLogger.Break_<version>_amd64.deb`**, then:
+**Ubuntu / Debian** — download **`ZenMetrics_<version>_amd64.deb`**, then:
 
 ```bash
 cd ~/Downloads
-sudo apt install ./TeamLogger.Break_*_amd64.deb
+sudo apt install ./ZenMetrics_*_amd64.deb
 ```
 
-**Fedora / openSUSE** — download the `.rpm`, then `sudo dnf install ./TeamLogger.Break-*.rpm`.
+**Fedora / openSUSE** — download the `.rpm`, then `sudo dnf install ./ZenMetrics-*.rpm`.
 
 **Any distribution** — download the `.AppImage`, make it executable and run it:
 
 ```bash
-chmod +x TeamLogger.Break_*_amd64.AppImage
-./TeamLogger.Break_*_amd64.AppImage
+chmod +x ZenMetrics_*_amd64.AppImage
+./ZenMetrics_*_amd64.AppImage
 ```
 
 The countdown lives in the **top bar**. On GNOME this needs the *AppIndicator* extension — Ubuntu has
@@ -74,8 +74,8 @@ Needs Node 22 and Rust (stable). On Linux also:
 `sudo apt install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev`.
 
 ```bash
-git clone https://github.com/vyaca-corp/teamlogger-break.git
-cd teamlogger-break/app
+git clone https://github.com/vyaca-corp/zenmetrics.git
+cd zenmetrics/app
 npm ci
 npx tauri build        # installers end up in src-tauri/target/release/bundle/
 ```
@@ -126,8 +126,8 @@ a break — next time it opens it carries on (or resumes TeamLogger if the break
 ### The menu bar / tray
 
 Closing the window keeps the app running. The ring + countdown in the menu bar (macOS), top bar
-(Linux) or tray (Windows) has a menu: **Open TeamLogger Break**, **Automatic breaks**,
-**Skip today's remaining breaks**, **Quit TeamLogger Break**.
+(Linux) or tray (Windows) has a menu: **Open ZenMetrics**, **Automatic breaks**,
+**Skip today's remaining breaks**, **Quit ZenMetrics**.
 
 ### After you log in
 
@@ -156,7 +156,7 @@ It uses the free **ntfy** app; no account needed.
 
 1. Install **ntfy** — [Android (Play Store)](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
    · [iPhone (App Store)](https://apps.apple.com/app/ntfy/id1625396347).
-2. In TeamLogger Break: **Settings → Phone & alarm → Set up your phone** (or setup step 6).
+2. In ZenMetrics: **Settings → Phone & alarm → Set up your phone** (or setup step 6).
 3. In ntfy, tap **+** and **scan the QR code**, or type the topic shown (it starts with `tlb-`).
 4. Click **Send test** — a notification should appear on your phone within seconds.
 5. **For a loud alarm on Android:** in ntfy open the topic → *Notification settings* → *Urgent
@@ -202,7 +202,7 @@ so they still ring if your computer goes to sleep or offline.
 | **A break didn't start** | Is **Auto** on? Is today one of your break days? Was the computer asleep at the time (then it's *missed*)? Check **Settings → General → Activity log**. |
 | **"Couldn't click in TeamLogger"** | TeamLogger must be on its timer screen and signed in. *Resume* can't be pressed if no project/task is selected in TeamLogger. |
 | **Nothing happens in TeamLogger, but the log says "Test mode"** | Turn off **Test mode** (Settings → General). |
-| **No notifications** | Allow them for TeamLogger Break in your system's notification settings (macOS/Windows), then try **Allow** in setup step 4. |
+| **No notifications** | Allow them for ZenMetrics in your system's notification settings (macOS/Windows), then try **Allow** in setup step 4. |
 | **No ring/countdown in the Linux top bar** | Install/enable the GNOME *AppIndicator* extension (see [Linux](#linux)). |
 | **Phone test doesn't arrive** | Check the topic in ntfy matches exactly; make sure phone alerts are on; try **New topic** and resubscribe. |
 | **macOS says the app "can't be opened"** | Right-click → Open (once). See [macOS](#macos). |
@@ -210,18 +210,23 @@ so they still ring if your computer goes to sleep or offline.
 
 ## Uninstall
 
-- **Windows:** Settings → Apps → *TeamLogger Break* → Uninstall.
+**Upgrading from "TeamLogger Break" (v0.1.0)?** That was the old name. Install ZenMetrics first (your
+settings and history are copied over the first time it starts), then remove the old app: on Linux
+`sudo apt remove team-logger-break`; on Windows and macOS the same way as below.
+
+
+- **Windows:** Settings → Apps → *ZenMetrics* → Uninstall.
 - **macOS:** quit it from the menu bar, then drag it from Applications to the Bin.
-- **Linux:** `sudo apt remove team-logger-break` (or `sudo dnf remove team-logger-break`; for the
+- **Linux:** `sudo apt remove zen-metrics` (or `sudo dnf remove zen-metrics`; for the
   AppImage just delete the file).
 
 Your settings and history stay behind in case you reinstall. To remove them too, delete:
 
 | | |
 |---|---|
-| Windows | `%APPDATA%\teamlogger-break\` |
-| macOS | `~/Library/Application Support/teamlogger-break/` |
-| Linux | `~/.config/teamlogger-break/` and `~/.local/share/teamlogger-break/` |
+| Windows | `%APPDATA%\zenmetrics\` |
+| macOS | `~/Library/Application Support/zenmetrics/` |
+| Linux | `~/.config/zenmetrics/` and `~/.local/share/zenmetrics/` |
 
 TeamLogger itself isn't changed by uninstalling. If it's still running with the control port, quit and
 reopen it once to start it normally again.
