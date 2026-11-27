@@ -73,7 +73,7 @@ Needs Node 22 and Rust (stable). On Linux also:
 `sudo apt install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev`.
 
 ```bash
-git clone https://github.com/mohithkumarss/teamlogger-break.git
+git clone https://github.com/vyaca-corp/teamlogger-break.git
 cd teamlogger-break/app
 npm ci
 npx tauri build        # installers end up in src-tauri/target/release/bundle/
