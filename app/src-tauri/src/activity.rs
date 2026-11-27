@@ -92,7 +92,6 @@ impl ActivityLog {
         totals.get(&day.format("%Y-%m-%d").to_string()).copied()
     }
 
-    #[allow(dead_code)] // used once TeamLogger control lands (milestone 3)
     pub fn set_tl_total(&self, day: NaiveDate, seconds: f64) -> std::io::Result<()> {
         let path = self.totals_path();
         let mut totals: HashMap<String, f64> =
@@ -108,7 +107,6 @@ impl ActivityLog {
     }
 
     /// Extend the timeline with one sample (same joining rules as the Linux app).
-    #[allow(dead_code)] // used by the recorder (milestone 3)
     pub fn record(&self, state: &str, now_ts: f64) -> std::io::Result<()> {
         let day = local_date(now_ts);
         let mut segs = self.load(day);

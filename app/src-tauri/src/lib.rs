@@ -5,7 +5,10 @@
 //! the scheduler loop, tray, notifications and phone come next.
 
 mod activity;
+mod cdp;
 mod commands;
+mod control;
+mod launch;
 mod schedule;
 mod store;
 mod teamlogger;
@@ -22,6 +25,8 @@ pub struct AppState {
     pub log_lines: Mutex<Vec<String>>,
     /// Set once the web UI has made its first call.
     pub ui_seen: std::sync::atomic::AtomicBool,
+    /// What TeamLogger is doing (updated by the poller every few seconds).
+    pub live: Mutex<control::Live>,
 }
 
 impl AppState {
@@ -37,6 +42,7 @@ impl AppState {
             sched: Mutex::new(sched),
             log_lines: Mutex::new(Vec::new()),
             ui_seen: Default::default(),
+            live: Mutex::new(control::Live::default()),
             paths,
         };
         state.add_log(format!("Settings: {}", state.paths.config_file.display()));
@@ -68,6 +74,7 @@ pub fn run() {
         // the countdown in the menu bar / top bar / tray
         .setup(|app| {
             tray::setup(app.handle())?;
+            start_poller(app.handle().clone());
             Ok(())
         })
         // closing the window keeps the app (and the schedule) running, like the Linux app
@@ -95,6 +102,7 @@ pub fn run() {
             commands::activity_log,
             commands::not_yet,
             commands::teamlogger_status,
+            commands::connect_teamlogger,
             commands::set_teamlogger_path,
             commands::set_breaks,
             commands::suggested_breaks,
@@ -109,6 +117,45 @@ pub fn run() {
                 tray::show_main(_app);
             }
         });
+}
+
+/// Every 5 s: read TeamLogger (read-only), record the timeline, and keep
+/// TeamLogger's own daily total. Never clicks anything.
+fn start_poller(app: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        let mut tick: u64 = 0;
+        let mut was_connected = None;
+        loop {
+            let state = app.state::<AppState>();
+            let port = state.cfg.lock().unwrap().port;
+            let live = if teamlogger::control_port_open(port) {
+                control::read_live(port)
+            } else {
+                control::Live::default()
+            };
+            let now = chrono::Local::now();
+            let sample = match live.state {
+                "working" | "meeting" => Some("active"),
+                "break" => Some("break"),
+                _ => None,
+            };
+            if let Some(s) = sample {
+                let _ = state.log.record(s, now.timestamp() as f64);
+            }
+            if tick % 3 == 0 {
+                if let Some(total) = live.total {
+                    let _ = state.log.set_tl_total(now.date_naive(), total);
+                }
+            }
+            if was_connected != Some(live.connected) {
+                was_connected = Some(live.connected);
+                state.add_log(if live.connected { "TeamLogger connected" } else { "TeamLogger not connected" });
+            }
+            *state.live.lock().unwrap() = live;
+            tick += 1;
+            std::thread::sleep(std::time::Duration::from_secs(5));
+        }
+    });
 }
 
 /// The first time the window is closed, say where the app went (once per run).

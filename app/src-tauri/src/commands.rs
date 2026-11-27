@@ -243,6 +243,10 @@ pub struct TeamLoggerStatus {
     /// The control port answers (TeamLogger is running with it open).
     connected: bool,
     port: u16,
+    /// "working" | "break" | "meeting" | "unknown" (from the poller)
+    state: &'static str,
+    /// TeamLogger's total for today, seconds
+    total: Option<f64>,
 }
 
 #[tauri::command]
@@ -251,15 +255,47 @@ pub async fn teamlogger_status(state: State<'_, AppState>) -> Res<TeamLoggerStat
         let cfg = state.cfg.lock().unwrap();
         (cfg.teamlogger_path.clone(), cfg.port)
     };
+    let live = state.live.lock().unwrap().clone();
     // file system + a local socket: keep it off the UI thread
-    tauri::async_runtime::spawn_blocking(move || TeamLoggerStatus {
-        os: std::env::consts::OS,
-        install: crate::teamlogger::find(chosen.as_deref()),
-        connected: crate::teamlogger::control_port_open(port),
-        port,
+    tauri::async_runtime::spawn_blocking(move || {
+        let connected = crate::teamlogger::control_port_open(port);
+        TeamLoggerStatus {
+            os: std::env::consts::OS,
+            install: crate::teamlogger::find(chosen.as_deref()),
+            connected,
+            port,
+            state: if connected { live.state } else { "unknown" },
+            total: live.total,
+        }
     })
     .await
     .map_err(|e| e.to_string())
+}
+
+/// "Connect": restart TeamLogger once with its local control port. Needs the
+/// consent given in setup; takes up to a minute.
+#[tauri::command]
+pub async fn connect_teamlogger(app: tauri::AppHandle) -> Res<String> {
+    use tauri::Manager;
+    let (chosen, port, consent) = {
+        let state = app.state::<AppState>();
+        let cfg = state.cfg.lock().unwrap();
+        (cfg.teamlogger_path.clone(), cfg.port, cfg.control_consent)
+    };
+    let install = crate::teamlogger::find(chosen.as_deref())
+        .ok_or("TeamLogger wasn't found — choose it in Settings → General")?;
+    let app2 = app.clone();
+    let res = tauri::async_runtime::spawn_blocking(move || {
+        let log = |m: String| app2.state::<AppState>().add_log(m);
+        crate::launch::connect(&install.path, port, consent, &log)
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    app.state::<AppState>().add_log(match &res {
+        Ok(m) => m.clone(),
+        Err(e) => format!("Connect failed: {e}"),
+    });
+    res
 }
 
 /// Use this TeamLogger (picked with "Browse…"); `None` goes back to auto-detect.

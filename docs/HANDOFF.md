@@ -25,6 +25,19 @@
 - IPv6 on that network was broken → `teamlogger_phone.py` prefers IPv4.
 - UI rendered in light/dark, wide/narrow; animations not checkable in screenshots.
 
+## TeamLogger control in the Tauri app (milestone 3)
+
+- **Click guard:** take break / resume only send clicks when test mode is off **and** it's a release build
+  (or `TLB_ALLOW_CLICKS=1`). `TLB_ALLOW_CLICKS=0` blocks clicks everywhere. Dev builds can't click by accident.
+- Tests: `cargo test` (unit). Live, opt-in:
+  - clicks on a **mock** page only: start headless Chrome on port 9444 with a page titled "TeamLogger MOCK",
+    then `TLB_MOCK_PORT=9444 cargo test mock_page -- --ignored` (refuses port 9333 and non-mock pages).
+  - real TeamLogger, read-only: `cargo test real_teamlogger_read_only -- --ignored --nocapture`.
+- The owner's employer records every break: **never** click or restart the real TeamLogger while developing.
+- Don't run the Tauri app and the Python app against the same data folder at the same time — both record
+  the timeline. Use `npm run tauri:demo` (separate `dev-data/`) while the Python app is the daily driver.
+- DevTools HTTP must be HTTP/1.1 (`Connection: close`): newer Chromium silently drops HTTP/1.0 requests.
+
 ## Known limitations / gotchas
 
 - Font: Google Sans Flex is the default face everywhere. Tauri app: bundled in the web UI. Linux GTK app:

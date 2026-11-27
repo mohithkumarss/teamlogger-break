@@ -116,7 +116,23 @@ class AppState {
       "TeamLogger restarts once so this app can press its buttons. Its timer pauses for a few seconds.",
       "Connect",
     );
-    if (ok) await this.notYet("Connect TeamLogger");
+    if (ok) await this.connectNow();
+  }
+
+  /** Restart TeamLogger with its control port (consent already given). */
+  async connectNow(): Promise<boolean> {
+    if (!this.cfg.control_consent) {
+      toast("Allow this app to restart TeamLogger first (setup step 3 / Settings)");
+      return false;
+    }
+    toast("Connecting TeamLogger — it restarts once, this can take up to a minute…");
+    try {
+      toast(await api.connect_teamlogger());
+      return true;
+    } catch (e) {
+      errorToast(e);
+      return false;
+    }
   }
 }
 

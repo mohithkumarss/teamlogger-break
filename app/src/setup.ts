@@ -84,7 +84,14 @@ export function runSetup(root: HTMLElement): Promise<void> {
           const consent = h("input", { type: "checkbox", id: "consent", checked: app.cfg.control_consent });
           const live = h("div", { class: "status-box" }, statusRow(null, "Checking the connection…", ""));
           const connectBtn = h("button", { class: "btn soft", disabled: !app.cfg.control_consent,
-            on: { click: () => app.notYet("Connect TeamLogger") } }, "Connect now");
+            on: { click: async () => {
+              connectBtn.disabled = true;
+              connectBtn.textContent = "Connecting…";
+              await app.connectNow();
+              connectBtn.disabled = !consent.checked;
+              connectBtn.textContent = "Connect now";
+              poll();
+            } } }, "Connect now");
           consent.onchange = () => {
             connectBtn.disabled = !consent.checked;
             app.update({ control_consent: consent.checked });

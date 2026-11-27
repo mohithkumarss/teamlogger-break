@@ -162,8 +162,9 @@ export function mockApi(): Api {
     teamlogger_status: async () => ({
       os: /Mac/.test(navigator.platform) ? "macos" : /Win/.test(navigator.platform) ? "windows" : "linux",
       install: cfg.teamlogger_path ? { path: cfg.teamlogger_path, how: "chosen" } : null,
-      connected: false, port: cfg.port,
+      connected: false, port: cfg.port, state: "unknown", total: null,
     }),
+    connect_teamlogger: async () => { throw "Connecting needs the desktop app — this is the browser preview."; },
     set_teamlogger_path: async (path) => { cfg.teamlogger_path = path; return copy(); },
     set_breaks: async (breaks) => {
       const sorted = [...breaks].sort((a, b) => a.start.localeCompare(b.start));

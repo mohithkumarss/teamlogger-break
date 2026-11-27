@@ -105,7 +105,8 @@ pub fn control_port_open(port: u16) -> bool {
     let Ok(mut s) = TcpStream::connect_timeout(&addr, Duration::from_millis(300)) else { return false };
     let _ = s.set_read_timeout(Some(Duration::from_millis(700)));
     let _ = s.set_write_timeout(Some(Duration::from_millis(300)));
-    if s.write_all(format!("GET /json/version HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\n\r\n").as_bytes()).is_err() {
+    // HTTP/1.1 + close: newer Chromium silently drops HTTP/1.0 requests
+    if s.write_all(format!("GET /json/version HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n").as_bytes()).is_err() {
         return false;
     }
     let mut buf = Vec::new();

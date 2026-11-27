@@ -79,7 +79,11 @@ Plugins: `tray-icon`, `notification`, `autostart`, `single-instance`, `store`, `
 
 1. ✅ Scaffold Tauri app, port design (Today/Stats/Settings) — runs in a browser with demo data too.
 2. ✅ Rust core: store + activity + stats (reads existing JSON) + schedule status (next break, progress).
-3. CDP client + Linux adapter → parity with current Linux app.
+3. ✅ CDP client + Linux adapter (27 Nov 2026): `cdp.rs` (127.0.0.1-only DevTools client), `control.rs`
+   (read state + today's total; take break / resume behind a **click guard**), `launch.rs` (Linux Connect:
+   stop main process, `systemd-run` scope, retry on self-relaunch; consent required), 5-s read-only poller
+   (timeline + TeamLogger totals), real **Connect** in the UI. Clicks verified only on a mock page;
+   real TeamLogger verified read-only. Connect not run against the real TeamLogger (by design).
 4. Scheduler + notifications + sound + tray (per-OS presentation). ✅ tray ring + countdown and hide-on-close done.
 5. ntfy phone module.
 6. ✅ Setup screen (all 7 steps). Steps that need later milestones save the choice now and say so:

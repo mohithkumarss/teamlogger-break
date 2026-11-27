@@ -24,6 +24,8 @@ serde_json = { version = "1", features = ["preserve_order"] }
 chrono = { version = "0.4", features = ["serde"] }
 dirs = "6"
 getrandom = "0.3"
+# DevTools websocket to TeamLogger (127.0.0.1 only)
+tungstenite = "0.26"
 
 [dev-dependencies]
 tempfile = "3"

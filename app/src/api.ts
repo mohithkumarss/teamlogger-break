@@ -28,6 +28,10 @@ export interface TeamLoggerStatus {
   install: { path: string; how: "auto" | "chosen" } | null;
   connected: boolean;
   port: number;
+  /** what TeamLogger is doing, read every few seconds (read-only) */
+  state?: "working" | "break" | "meeting" | "unknown";
+  /** TeamLogger's own total for today, seconds */
+  total?: number | null;
 }
 
 export interface PhoneLink { url: string; svg: string }
@@ -79,6 +83,8 @@ export interface Api {
   activity_log(): Promise<string[]>;
   not_yet(action: string): Promise<void>;
   teamlogger_status(): Promise<TeamLoggerStatus>;
+  /** restart TeamLogger once with its local control port (needs consent) */
+  connect_teamlogger(): Promise<string>;
   set_teamlogger_path(path: string | null): Promise<Config>;
   set_breaks(breaks: Break[]): Promise<Config>;
   suggested_breaks(): Promise<Break[]>;
@@ -105,6 +111,7 @@ async function tauriApi(): Promise<Api> {
     activity_log: () => call("activity_log"),
     not_yet: (action) => call("not_yet", { action }),
     teamlogger_status: () => call("teamlogger_status"),
+    connect_teamlogger: () => call("connect_teamlogger"),
     set_teamlogger_path: (path) => call("set_teamlogger_path", { path }),
     set_breaks: (breaks) => call("set_breaks", { breaks }),
     suggested_breaks: () => call("suggested_breaks"),
