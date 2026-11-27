@@ -55,11 +55,25 @@ a month calendar, an 8-week trend, and every day's timeline and breaks.
 
 **Light and dark**, following your system or your choice, set in **Google Sans Flex**.
 
+## Install
+
+You need the **TeamLogger desktop app** installed and signed in on the same computer. Then download
+the installer for your system from **[Releases](../../releases)** (open **Assets** under the latest release):
+
+| System | Download | Then |
+|---|---|---|
+| **Windows** | `TeamLogger Break_…_x64-setup.exe` (or `.msi`) | Run it. If SmartScreen warns, click **More info → Run anyway** (the installer isn't signed yet). |
+| **macOS** | `TeamLogger Break_…_universal.dmg` | Drag the app to **Applications**. First launch: **right-click → Open → Open** (not notarized yet). |
+| **Ubuntu / Debian** | `TeamLogger Break_…_amd64.deb` | `sudo apt install ./TeamLogger*Break_*_amd64.deb` |
+| **Fedora / openSUSE** | `TeamLogger Break-….x86_64.rpm` | `sudo dnf install ./TeamLogger*Break-*.rpm` |
+| **Any Linux** | `TeamLogger Break_…_amd64.AppImage` | `chmod +x` it, then run it |
+
+On Linux the countdown sits in the top bar; GNOME needs the *AppIndicator* extension
+(built into Ubuntu). Building from source and uninstalling: see the **[user guide](docs/USER_GUIDE.md)**.
+
 ## Getting started
 
-1. **Install** — download the installer for your system from [Releases](../../releases):
-   `.msi` / `.exe` (Windows), `.dmg` (macOS), `.deb` / `.AppImage` (Linux).
-2. **Follow the setup** — seven short steps the first time you open it:
+1. **Open TeamLogger Break** and follow the setup — seven short steps the first time:
 
    <img alt="Setup: let this app press TeamLogger's buttons" src="docs/images/setup-dark.png" width="560">
 
@@ -72,7 +86,27 @@ a month calendar, an 8-week trend, and every day's timeline and breaks.
    | **Phone** *(optional)* | scan the QR code in ntfy, send a test |
    | **Almost done** | start at login, light or dark |
 
-3. **That's it.** Close the window — it keeps running in the menu bar / tray. Your breaks happen on time.
+2. **That's it.** Close the window — it keeps running in the menu bar / tray. Your breaks happen on time.
+
+Want to try it without anything happening in TeamLogger first? Turn on **Test mode** in
+Settings → General — everything runs, nothing is clicked.
+
+## Using it
+
+- **The big number** is the time to your next break — or, on a break, until you're back.
+- **Take a break now** starts one straight away; during a break, **Resume work** ends it early and
+  **+5 min** / **+10 min** stretches it. **Skip today** skips the rest of today's breaks.
+- **Your day** shows work, breaks and planned breaks; **click a planned break to change it**, or **+ Add break**.
+- **Auto** turns automatic breaks on or off. **Stats** (top) shows your week and month.
+- **Close the window** and it keeps running — the ring and countdown in the menu bar / tray has
+  *Open*, *Automatic breaks*, *Skip today* and *Quit*.
+- **After each login**, TeamLogger starts without the control port: if you see **Connect TeamLogger**,
+  click it once (TeamLogger restarts for a few seconds).
+- **Phone alerts:** install the free **ntfy** app, then Settings → Phone & alarm → *Set up your phone*,
+  scan the QR code and press **Send test**.
+
+Everything in detail — settings, phone alarm on Android/iPhone, troubleshooting, uninstalling —
+is in the **[user guide](docs/USER_GUIDE.md)**.
 
 ## How it works
 
