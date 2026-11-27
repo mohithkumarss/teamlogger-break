@@ -1,8 +1,10 @@
 # Cross-platform plan (Windows · macOS · Linux)
 
-Status: **plan, not started.** The working app today is the Linux/GNOME version in the
-repo root (Python + GTK 4/libadwaita). This document is the plan for the next phase:
-a version that installs and runs on Windows, macOS and Linux, with a first-run setup screen.
+Status: **milestones 1–2 and 6 done** (27 Nov 2026) — Tauri app in [`app/`](../app/README.md): shell,
+full UI port, settings store, timeline + stats, schedule status, first-run setup. The working app is still the
+Linux/GNOME version in the repo root (Python + GTK 4/libadwaita) until the Tauri build reaches
+parity. This document is the plan for a version that installs and runs on Windows, macOS and
+Linux, with a first-run setup screen.
 
 ## 1. What the app has to do (and what is OS-specific)
 
@@ -75,12 +77,13 @@ Plugins: `tray-icon`, `notification`, `autostart`, `single-instance`, `store`, `
 
 ## 5. Milestones
 
-1. Scaffold Tauri app, port design (Today/Stats/Settings) as static UI with mock data.
-2. Rust core: store + activity + stats (reads existing JSON).
+1. ✅ Scaffold Tauri app, port design (Today/Stats/Settings) — runs in a browser with demo data too.
+2. ✅ Rust core: store + activity + stats (reads existing JSON) + schedule status (next break, progress).
 3. CDP client + Linux adapter → parity with current Linux app.
-4. Scheduler + notifications + sound + tray (per-OS presentation).
+4. Scheduler + notifications + sound + tray (per-OS presentation). ✅ tray ring + countdown and hide-on-close done.
 5. ntfy phone module.
-6. Setup screen.
+6. ✅ Setup screen (all 7 steps). Steps that need later milestones save the choice now and say so:
+   "Connect now" (3), phone "Send test" (5). Windows/macOS TeamLogger paths are guesses until 7.
 7. Windows + macOS adapters (needs a Windows and a Mac with TeamLogger to verify the debug flag and paths).
 8. GitHub Actions: build `.msi`, `.dmg`, `.AppImage`/`.deb`; smoke tests on all three runners.
 9. Signing (Apple Developer ID + notarization; Windows code-signing cert optional).

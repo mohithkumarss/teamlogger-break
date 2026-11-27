@@ -1,0 +1,29 @@
+[package]
+name = "teamlogger-break"
+version = "0.1.0"
+description = "Scheduled breaks for the TeamLogger desktop client (unofficial)"
+edition = "2021"
+
+[lib]
+# The `_lib` suffix avoids a name clash with the binary on Windows.
+name = "teamlogger_break_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-single-instance = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-autostart = "2"
+qrcode = { version = "0.15", default-features = false, features = ["std", "svg"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "6"
+getrandom = "0.3"
+
+[dev-dependencies]
+tempfile = "3"

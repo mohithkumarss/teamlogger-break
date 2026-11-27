@@ -3,7 +3,10 @@
 ## Where things are
 
 - **Working app:** Linux/GNOME version in the repo root. Run `python3 teamlogger_break_gui.py`.
-- **Next phase:** cross-platform rewrite + first-run setup screen → [CROSS_PLATFORM_PLAN.md](CROSS_PLATFORM_PLAN.md).
+- **Cross-platform version:** [`app/`](../app/README.md) (Tauri v2). Milestones 1–2 done: UI port, config store,
+  timeline/stats, schedule status, first-run setup (milestone 6). Next: milestone 3 (DevTools client + launch adapters). Plan → [CROSS_PLATFORM_PLAN.md](CROSS_PLATFORM_PLAN.md).
+  Dev on macOS: Rust via `brew install rustup` (keg-only → `PATH=/opt/homebrew/opt/rustup/bin:$PATH`);
+  `npm run dev` previews the UI in a browser with demo data; `npm run tauri:demo` runs the desktop app on `app/dev-data`.
 - **Package:** `packaging/build-deb.sh <version>` (last built: 1.5.0; `dist/` is git-ignored).
 
 ## User data (not in the repo)
@@ -23,6 +26,10 @@
 - UI rendered in light/dark, wide/narrow; animations not checkable in screenshots.
 
 ## Known limitations / gotchas
+
+- Font: Google Sans Flex is the default face everywhere. Tauri app: bundled in the web UI. Linux GTK app:
+  registered with fontconfig for its own process before GTK starts (any Pango), falling back to
+  Pango ≥ 1.56's add_font_file — **not yet checked on a Linux machine**.
 
 - After each login TeamLogger starts without the debug port → press **Connect** once (TeamLogger restarts).
 - Restarting this app **during a break** resumes TeamLogger (quit ends the break) — avoid, or change `quit_app`.

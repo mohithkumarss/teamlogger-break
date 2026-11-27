@@ -768,6 +768,7 @@ def main():
                          start_new_session=True)
         print("TeamLogger Break is running in the background. You can close this terminal.")
         return
+    tui.register_fonts_early()   # before GTK loads, so Google Sans Flex is the default face
     BreakApp = build_app_classes()
     BreakApp(hidden=args.hidden).run([sys.argv[0]])
 

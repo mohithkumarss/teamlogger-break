@@ -8,7 +8,8 @@ ends — so breaks are recorded as breaks. You can extend a break (+5 / +10 min)
 or your phone.
 
 > Current version: **Linux (GNOME)**, Python + GTK 4 / libadwaita.
-> Windows and macOS are planned — see [docs/CROSS_PLATFORM_PLAN.md](docs/CROSS_PLATFORM_PLAN.md).
+> Windows / macOS / Linux version (Tauri v2): in progress in [`app/`](app/README.md) — a preview
+> with the full UI and stats, not yet able to control TeamLogger. See [docs/CROSS_PLATFORM_PLAN.md](docs/CROSS_PLATFORM_PLAN.md).
 
 ## Features
 
@@ -17,7 +18,8 @@ or your phone.
 - Stats: week bars / month calendar, per-day timeline, history.
 - Top-bar progress ring + countdown; start at login; runs in the background.
 - Phone notifications via [ntfy](https://ntfy.sh): live countdown, warning, repeating alarm, +5 min / Resume buttons.
-- Light / dark theme, micro-animations. Typeface: Google Sans Flex (OFL-1.1, bundled).
+- Light / dark theme, micro-animations. Typeface: Google Sans Flex (OFL-1.1, bundled) — the default
+  face in every version (Linux, macOS, Windows), independent of the fonts installed on the machine.
 
 ## Run (Linux)
 
@@ -50,6 +52,7 @@ scope so its screenshot permission is unchanged.
 | `teamlogger_phone.py` | ntfy phone notifications |
 | `teamlogger_break_tray.py` | top-bar indicator (progress ring + countdown) |
 | `data/`, `fonts/` | logo, bundled font + its license |
+| `app/` | cross-platform Tauri version (in progress) |
 | `docs/` | plans and handoff notes |
 
 ## License

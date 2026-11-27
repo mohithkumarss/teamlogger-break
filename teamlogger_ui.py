@@ -163,21 +163,56 @@ def render_css(pal):
     return CSS.substitute(pal, SANS=SANS)
 
 
+def font_files():
+    return [f for d in FONT_DIRS for f in sorted(glob.glob(os.path.join(d, "*.ttf")))]
+
+
+_FC_REGISTERED = False
+
+
+def register_fonts_early():
+    """Make the bundled Google Sans Flex the app's font on any Linux, without installing it.
+
+    Adds the font to fontconfig for this process only (FcConfigAppFontAddFile).
+    Works with every Pango version, but must run before GTK/Pango create their
+    font map, i.e. before GTK is imported. Returns True when the font was added.
+    """
+    global _FC_REGISTERED
+    try:
+        import ctypes
+        import ctypes.util
+        name = ctypes.util.find_library("fontconfig") or "libfontconfig.so.1"
+        fc = ctypes.CDLL(name)
+        fc.FcConfigAppFontAddFile.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+        fc.FcConfigAppFontAddFile.restype = ctypes.c_int
+        for f in font_files():
+            if fc.FcConfigAppFontAddFile(None, f.encode()):
+                _FC_REGISTERED = True
+    except (OSError, AttributeError):
+        pass
+    return _FC_REGISTERED
+
+
 def load_fonts():
-    """Make the bundled Google Sans Flex available to this process only."""
+    """Make sure the bundled Google Sans Flex is available to this process only.
+
+    Uses the fontconfig registration from register_fonts_early() when that
+    worked; otherwise Pango >= 1.56 can add the file to its font map directly.
+    """
+    if _FC_REGISTERED:
+        return True
     import gi
     gi.require_version("PangoCairo", "1.0")
     from gi.repository import PangoCairo
     fm = PangoCairo.FontMap.get_default()
-    if not hasattr(fm, "add_font_file"):   # Pango < 1.56: fall back to system fonts
+    if not hasattr(fm, "add_font_file"):   # old Pango and no fontconfig: system fonts
         return False
     ok = False
-    for d in FONT_DIRS:
-        for f in glob.glob(os.path.join(d, "*.ttf")):
-            try:
-                ok = fm.add_font_file(f) or ok
-            except Exception:
-                pass
+    for f in font_files():
+        try:
+            ok = fm.add_font_file(f) or ok
+        except Exception:
+            pass
     return ok
 
 
