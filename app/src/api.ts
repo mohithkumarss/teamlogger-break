@@ -40,7 +40,10 @@ export interface Status {
   mode: Mode; running: boolean; target: number | null; frac: number;
   caption: string; text: string;
   next: [number, number] | null; active: [number, number] | null;
+  /** The next break is today, so "Skip next break" applies. */
   can_skip: boolean; planned_today: number;
+  /** Today's breaks still ahead and not skipped; today's skipped breaks not yet over. */
+  upcoming_today: number; skipped_today: number;
   today: PlannedBreak[];
 }
 
@@ -77,6 +80,8 @@ export interface Api {
   status(): Promise<Status>;
   set_running(on: boolean): Promise<Status>;
   skip_today(): Promise<number>;
+  skip_next(): Promise<[number, number] | null>;
+  unskip_today(): Promise<number>;
   dashboard(): Promise<Dashboard>;
   period(kind: "week" | "month", anchor: string): Promise<PeriodView>;
   day_detail(day: string): Promise<DayDetail>;
@@ -110,6 +115,8 @@ async function tauriApi(): Promise<Api> {
     status: () => call("status"),
     set_running: (on) => call("set_running", { on }),
     skip_today: () => call("skip_today"),
+    skip_next: () => call("skip_next"),
+    unskip_today: () => call("unskip_today"),
     dashboard: () => call("dashboard"),
     period: (kind, anchor) => call("period", { kind, anchor }),
     day_detail: (day) => call("day_detail", { day }),

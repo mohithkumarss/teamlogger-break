@@ -42,10 +42,11 @@ export class Chart {
 
 // ---------------------------------------------------------------- day strip
 /** One day on a line: work (solid), recorded breaks (amber), planned breaks
- *  (amber outline + time above, clickable), now (blue with a radar ping). */
+ *  (amber outline + time above, clickable; skipped ones faded and dashed),
+ *  now (blue with a radar ping). */
 export function dayStrip(
   w: number, animate: boolean,
-  d: { day: string; segments: Segment[]; planned: [number, number][]; editable: boolean },
+  d: { day: string; segments: Segment[]; planned: [number, number][]; editable: boolean; skipped?: number[] },
 ): string {
   const TOP = 20, BAR = 30, PAD = 1, H = 72;
   const isToday = d.day === dayKey(new Date());
@@ -92,14 +93,18 @@ export function dayStrip(
   let lastLabelEnd = -1e9;
   for (const [s, e] of d.planned) {
     const xs = x(s), bw = Math.max(6, x(e) - xs);
-    const tipText = `Planned break · ${fmtTs(s)} – ${fmtTs(e)}${d.editable ? " · click to edit" : ""}`;
-    out.push(`<rect class="${d.editable ? "clickable" : ""}" data-planned="${s},${e}" data-tip="${esc(tipText)}" x="${n(xs)}" y="${TOP + 1}" width="${n(bw)}" height="${BAR - 2}" rx="8" style="fill:${mix("amber", 12)};stroke:${mix("amber", 85)};stroke-width:1.3"/>`);
+    const skipped = d.skipped?.includes(s) ?? false;
+    const tipText = `${skipped ? "Skipped" : "Planned"} break · ${fmtTs(s)} – ${fmtTs(e)}${d.editable ? " · click to edit" : ""}`;
+    const look = skipped
+      ? `fill:none;stroke:${mix("amber", 45)};stroke-width:1.3;stroke-dasharray:3 3`
+      : `fill:${mix("amber", 12)};stroke:${mix("amber", 85)};stroke-width:1.3`;
+    out.push(`<rect class="${d.editable ? "clickable" : ""}" data-planned="${s},${e}" data-tip="${esc(tipText)}" x="${n(xs)}" y="${TOP + 1}" width="${n(bw)}" height="${BAR - 2}" rx="8" style="${look}"/>`);
     const dt = new Date(s * 1000);
     const lbl = `${dt.getHours() % 12 || 12}:${String(dt.getMinutes()).padStart(2, "0")}`;
     const tw = lbl.length * 6.4;
     const lx = Math.min(Math.max(xs + bw / 2 - tw / 2, 0), w - tw);
     if (lx > lastLabelEnd + 6) {
-      out.push(`<text x="${n(lx)}" y="12" style="fill:var(--amber);font-size:11px;font-weight:680">${lbl}</text>`);
+      out.push(`<text x="${n(lx)}" y="12" style="fill:${skipped ? "var(--ter)" : "var(--amber)"};font-size:11px;font-weight:680${skipped ? ";text-decoration:line-through" : ""}">${lbl}</text>`);
       lastLabelEnd = lx + tw;
     }
   }

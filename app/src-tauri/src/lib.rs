@@ -112,6 +112,8 @@ pub fn run() {
             commands::status,
             commands::set_running,
             commands::skip_today,
+            commands::skip_next,
+            commands::unskip_today,
             commands::dashboard,
             commands::period,
             commands::day_detail,

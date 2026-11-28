@@ -168,6 +168,26 @@ impl Scheduler {
         }
     }
 
+    /// Skip only the next break, if it is today. Returns it.
+    pub fn skip_next(&mut self, cfg: &Config, now: NaiveDateTime) -> Option<(NaiveDateTime, NaiveDateTime)> {
+        let (s, e) = self.next_break(cfg, now).filter(|(s, _)| s.date() == now.date())?;
+        self.events.insert((s.date(), s.time()), Event::Skipped);
+        Some((s, e))
+    }
+
+    /// Bring back today's skipped breaks that haven't ended yet. Returns how many.
+    pub fn unskip_today(&mut self, cfg: &Config, now: NaiveDateTime) -> usize {
+        let mut n = 0;
+        for (s, e) in todays_breaks(cfg, now.date()) {
+            let key = (s.date(), s.time());
+            if e > now && self.events.get(&key) == Some(&Event::Skipped) {
+                self.events.remove(&key);
+                n += 1;
+            }
+        }
+        n
+    }
+
     /// Skip the rest of today's breaks. Returns how many were skipped.
     pub fn skip_today(&mut self, cfg: &Config, now: NaiveDateTime) -> usize {
         let mut n = 0;
@@ -195,12 +215,18 @@ impl Scheduler {
             st.mode = "off";
             st.caption = "Turn on Auto to follow your schedule".into();
             st.text = "Schedule is off".into();
+        } else if let Some((s, e)) = self.next_break(cfg, now).filter(|(s, _)| s.date() != now.date()) {
+            // nothing left today: no day-long countdown, just say when the next one is
+            let day = if s.date() == now.date() + Duration::days(1) { "tomorrow".to_string() } else { s.format("%A").to_string() };
+            st.mode = "off";
+            st.caption = format!("Next break {day}, {}", fmt_range(s.time(), e.time()));
+            st.text = format!("Done for today · next break {day} {}", fmt12(s.time()));
+            st.next = Some((ts(s), ts(e)));
         } else if let Some((s, e)) = self.next_break(cfg, now) {
-            let when = if s.date() == now.date() { String::new() } else { format!("{} ", s.format("%A")) };
             st.mode = "work";
             st.target = Some(ts(s));
             st.frac = work_progress(cfg, log, now, s);
-            st.caption = format!("{when}{}", fmt_range(s.time(), e.time()));
+            st.caption = fmt_range(s.time(), e.time());
             st.text = format!("Next break {}", st.caption);
             st.next = Some((ts(s), ts(e)));
             st.can_skip = s.date() == now.date();
@@ -209,7 +235,11 @@ impl Scheduler {
             st.caption = "Add one in Settings".into();
             st.text = "No upcoming breaks".into();
         }
-        st.planned_today = todays_breaks(cfg, now.date()).len();
+        let todays = todays_breaks(cfg, now.date());
+        st.planned_today = todays.len();
+        let skipped = |s: &NaiveDateTime| self.events.get(&(s.date(), s.time())) == Some(&Event::Skipped);
+        st.skipped_today = todays.iter().filter(|(s, e)| *e > now && skipped(s)).count();
+        st.upcoming_today = if st.active.is_some() { 0 } else { todays.iter().filter(|(s, _)| *s > now && !skipped(s)).count() };
         st.today = self.today_list(cfg, now);
         st
     }
@@ -279,8 +309,13 @@ pub struct Status {
     pub text: String,
     pub next: Option<(f64, f64)>,
     pub active: Option<(f64, f64)>,
+    /// The next break is today (so "Skip next break" applies).
     pub can_skip: bool,
     pub planned_today: usize,
+    /// Today's breaks still ahead and not skipped.
+    pub upcoming_today: usize,
+    /// Today's skipped breaks that haven't ended yet ("Undo skip").
+    pub skipped_today: usize,
     pub today: Vec<PlannedBreak>,
 }
 
@@ -366,6 +401,48 @@ mod tests {
     }
 
     #[test]
+    fn skip_next_skips_only_that_break_and_undo_brings_it_back() {
+        let c = cfg();
+        let dir = tempfile::tempdir().unwrap();
+        let log = ActivityLog::new(dir.path().to_path_buf());
+        let mut s = Scheduler::new(true);
+        let nine = at(2026, 11, 25, 9, 0);
+        // skip 11:30 → next is 13:00, still today
+        assert_eq!(s.skip_next(&c, nine).unwrap().0, at(2026, 11, 25, 11, 30));
+        let st = s.status(&c, &log, nine);
+        assert_eq!((st.mode, st.next.unwrap().0), ("work", ts(at(2026, 11, 25, 13, 0))));
+        assert_eq!((st.upcoming_today, st.skipped_today), (1, 1));
+        assert_eq!(st.today[0].state, "skipped");
+        // the skipped break doesn't start
+        assert!(s.tick(&c, at(2026, 11, 25, 11, 30)).is_empty());
+        // undo before it ends → it's back (and starts, within the grace period)
+        assert_eq!(s.unskip_today(&c, at(2026, 11, 25, 11, 31)), 1);
+        assert!(matches!(s.tick(&c, at(2026, 11, 25, 11, 31))[..], [Action::Begin { .. }]));
+    }
+
+    #[test]
+    fn nothing_left_today_shows_no_long_countdown() {
+        let c = cfg();
+        let dir = tempfile::tempdir().unwrap();
+        let log = ActivityLog::new(dir.path().to_path_buf());
+        let mut s = Scheduler::new(true);
+        let nine = at(2026, 11, 25, 9, 0); // Wednesday
+        assert_eq!(s.skip_today(&c, nine), 2);
+        let st = s.status(&c, &log, nine);
+        assert_eq!(st.mode, "off");
+        assert!(st.target.is_none(), "no 26-hour countdown");
+        assert_eq!(st.caption, "Next break tomorrow, 11:30 – 11:40 AM");
+        assert_eq!((st.upcoming_today, st.skipped_today, st.can_skip), (0, 2, false));
+        assert!(s.skip_next(&c, nine).is_none(), "skip next never reaches into tomorrow");
+        // Friday evening → Monday, by name
+        let st = Scheduler::new(true).status(&c, &log, at(2026, 11, 27, 18, 0));
+        assert!(st.caption.starts_with("Next break Monday"), "{}", st.caption);
+        // undo brings today's back
+        assert_eq!(s.unskip_today(&c, nine), 2);
+        assert_eq!(s.status(&c, &log, nine).mode, "work");
+    }
+
+    #[test]
     fn next_break_skips_days_off_and_skipped() {
         let c = cfg();
         let mut s = Scheduler::new(true);
@@ -397,7 +474,7 @@ mod tests {
         s.skip_today(&c, at(2026, 11, 25, 12, 20));
         assert_eq!(s.status(&c, &log, at(2026, 11, 25, 12, 20)).today[1].state, "skipped");
         let fri = s.status(&c, &log, at(2026, 11, 27, 18, 0));
-        assert_eq!(fri.caption, "Monday 11:30 – 11:40 AM");
+        assert_eq!((fri.mode, fri.caption.as_str()), ("off", "Next break Monday, 11:30 – 11:40 AM"));
         assert_eq!(fri.frac, 0.0);
     }
 }

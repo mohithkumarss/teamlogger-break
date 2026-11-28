@@ -406,13 +406,15 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
     # ------------------------------------------------------------ day strip
     class DayStrip(Gtk.Widget, Grow):
         """One day on a line: work (solid), recorded breaks (amber), planned breaks
-        (amber outline with their time above — click to edit), now (blue)."""
+        (amber outline with their time above — click to edit; skipped ones faded and
+        dashed), now (blue)."""
         __gtype_name__ = "TLBDayStrip"
         TOP, BAR, PAD = 20, 30, 1
 
-        def __init__(self, log, get_planned, on_planned=None, day=None):
+        def __init__(self, log, get_planned, on_planned=None, day=None, is_skipped=None):
             super().__init__(hexpand=True, has_tooltip=True)
             self.log, self.get_planned, self.on_planned = log, get_planned, on_planned
+            self.is_skipped = is_skipped or (lambda ts: False)
             self.day = day or dt.date.today()
             self.segs, self.range, self.blocks = [], (0, 1), []
             self.grow_init()
@@ -516,14 +518,18 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
             for s, e in planned:
                 xs, xe = self.x_of(s, w), self.x_of(e, w)
                 bw = max(6, xe - xs)
-                fill_round(snap, P("amber", 0.12), xs, y0 + 1, bw, bh - 2, 8)
-                stroke_round(snap, P("amber", 0.85), xs, y0 + 1, bw, bh - 2, 8, 1.3)
+                skipped = self.is_skipped(s)
+                if skipped:
+                    stroke_round(snap, P("amber", 0.45), xs, y0 + 1, bw, bh - 2, 8, 1.3, dash=[3, 3])
+                else:
+                    fill_round(snap, P("amber", 0.12), xs, y0 + 1, bw, bh - 2, 8)
+                    stroke_round(snap, P("amber", 0.85), xs, y0 + 1, bw, bh - 2, 8, 1.3)
                 lbl = dt.datetime.fromtimestamp(s).strftime("%-I:%M")
                 layout = measure_text(self, lbl, 8, 680)
                 tw = layout.get_pixel_size()[0]
                 lx = min(max(xs + bw / 2 - tw / 2, 0), w - tw)
                 if lx > last_label_end + 6:
-                    text(self, snap, lbl, lx, 2, P("amber"), size=8, weight=680)
+                    text(self, snap, lbl, lx, 2, P("ter") if skipped else P("amber"), size=8, weight=680)
                     last_label_end = lx + tw
                 self.blocks.append((xs - 4, xs + bw + 4, s, e))
             # now
@@ -554,7 +560,8 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
             f = lambda t: fmt12(dt.datetime.fromtimestamp(t))  # noqa: E731
             for x0, x1, s, e in self.blocks:
                 if x0 <= x <= x1:
-                    tip.set_text(f"Planned break · {f(s)} – {f(e)}" + (" · click to edit" if self.on_planned else ""))
+                    kind = "Skipped" if self.is_skipped(s) else "Planned"
+                    tip.set_text(f"{kind} break · {f(s)} – {f(e)}" + (" · click to edit" if self.on_planned else ""))
                     return True
             for s, e, st in self.segs:
                 if s - 30 <= ts <= e + 30:
@@ -1100,7 +1107,9 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
             menu = Gio.Menu()
             s1 = Gio.Menu()
             s1.append("Take a Break Now…", "app.break-now")
+            s1.append("Skip Next Break", "app.skip-next")
             s1.append("Skip Today's Breaks", "app.skip-today")
+            s1.append("Undo Skipped Breaks", "app.unskip")
             menu.append_section(None, s1)
             s2 = Gio.Menu()
             s2.append("Activity Log", "app.show-log")
@@ -1164,7 +1173,9 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
             st.append(add)
             hi.append(st)
             self.strip = DayStrip(self.app.activity, self.app.planned_breaks,
-                                  on_planned=lambda s, e: self.break_editor(s, e))
+                                  on_planned=lambda s, e: self.break_editor(s, e),
+                                  is_skipped=lambda ts: self.app.events.get(
+                                      (dt.datetime.fromtimestamp(ts).date(), dt.datetime.fromtimestamp(ts).time())) == "skipped")
             self.strip.set_margin_top(6)
             hi.append(self.strip)
 
@@ -1175,9 +1186,13 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
             self.ext5.connect("clicked", lambda *_: self.app.extend_break(5))
             self.ext10 = Gtk.Button(label="+10 min", css_classes=["soft"])
             self.ext10.connect("clicked", lambda *_: self.app.extend_break(10))
-            self.skip = Gtk.Button(label="Skip today", css_classes=["soft"], tooltip_text="Skip today's remaining breaks")
+            self.skip_next = Gtk.Button(label="Skip next break", css_classes=["soft"], tooltip_text="Skip only the next break")
+            self.skip_next.connect("clicked", lambda *_: self.app.skip_next())
+            self.skip = Gtk.Button(label="Skip today", css_classes=["soft"], tooltip_text="Skip all of today's remaining breaks")
             self.skip.connect("clicked", lambda *_: self.app.skip_today())
-            for b in (self.primary, self.ext5, self.ext10, self.skip):
+            self.unskip = Gtk.Button(label="Undo skip", css_classes=["flat"], tooltip_text="Bring back today's skipped breaks")
+            self.unskip.connect("clicked", lambda *_: self.app.unskip_today())
+            for b in (self.primary, self.ext5, self.ext10, self.skip_next, self.skip, self.unskip):
                 acts.append(b)
             hi.append(acts)
             left.append(self.hero)
@@ -1256,17 +1271,29 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
                 self.hero_cap1.set_label("until your next break")
                 self.hero_cap2.set_label(st["caption"])
             else:
+                skipped = self.app.skip_counts()[1]
                 self.state_lbl.set_label("Paused" if not self.app.running else "Done for today")
                 self.hero_cap1.set_label("Automatic breaks are off" if not self.app.running
+                                         else f"{skipped} break{'s' if skipped != 1 else ''} skipped today" if skipped
                                          else "No more breaks today")
-                self.hero_cap2.set_label("Turn on Auto to follow your schedule" if not self.app.running else "")
+                self.hero_cap2.set_label("Turn on Auto to follow your schedule" if not self.app.running
+                                         else st.get("caption", ""))
             self.hero_num.set_label(st["clock"] if any(c.isdigit() for c in st["clock"]) else "—")
             self.progress.set_state(st.get("frac", 0), mode)
             self.primary.set_label("Resume work" if on_break else "Take a break now")
             self.primary.set_css_classes(["primary"] + (["breaking"] if on_break else []))
             self.ext5.set_visible(on_break)
             self.ext10.set_visible(on_break)
-            self.skip.set_visible(not on_break and self.app.running and bool(self.app.next_break(dt.datetime.now())))
+            now = dt.datetime.now()
+            free = not on_break and self.app.running
+            nxt = self.app.next_break(now) if free else None
+            ahead, skipped = self.app.skip_counts(now)
+            today_next = bool(nxt) and nxt[0].date() == now.date()
+            self.skip_next.set_visible(today_next)
+            if today_next:
+                self.skip_next.set_label(f"Skip {fmt12(nxt[0])} break")
+            self.skip.set_visible(free and ahead >= 2)
+            self.unskip.set_visible(free and skipped > 0)
             if self.auto_switch.get_active() != self.app.running:
                 self.auto_switch.set_active(self.app.running)
             if time.time() % 30 < 1:
@@ -1339,8 +1366,13 @@ def build_ui_classes(Adw, Gdk, Gio, GLib, Graphene, Gsk, Gtk, Pango, h):
                 wdg.queue_draw()
             self.stats.redraw()
 
-        def toast(self, msg):
-            self.toasts.add_toast(Adw.Toast(title=msg, timeout=3))
+        def toast(self, msg, action=None):
+            """action: optional (label, callback), e.g. ("Undo", fn); the toast then stays longer."""
+            t = Adw.Toast(title=msg, timeout=6 if action else 3)
+            if action:
+                t.set_button_label(action[0])
+                t.connect("button-clicked", lambda *_: action[1]())
+            self.toasts.add_toast(t)
 
         # ---- handlers
         def on_close(self, *_):

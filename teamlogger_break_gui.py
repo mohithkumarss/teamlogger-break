@@ -215,6 +215,8 @@ def build_app_classes():
             self.set_theme(self.cfg.get("theme", "system"), save=False)
             for name, cb in (("break-now", lambda *_: self.show_and(self.win.break_now_dialog)),
                              ("skip-today", lambda *_: self.skip_today()),
+                             ("skip-next", lambda *_: self.skip_next()),
+                             ("unskip", lambda *_: self.unskip_today()),
                              ("connect", lambda *_: self.show_and(self.win.confirm_connect)),
                              ("show-log", lambda *_: self.show_and(self.win.show_log)),
                              ("hide", lambda *_: self.hide_window()),
@@ -475,6 +477,12 @@ def build_app_classes():
                 self.show_window()
             elif cmd == "resume":
                 self.end_break("Resumed early")
+            elif cmd == "skip-next":
+                self.skip_next()
+            elif cmd == "skip-today":
+                self.skip_today()
+            elif cmd == "unskip":
+                self.unskip_today()
             elif cmd == "quit":
                 self.quit_app()
             return False
@@ -590,15 +598,50 @@ def build_app_classes():
                     self.win.toast("Automatic breaks off")
             self.win.rebuild_breaks()
 
+        def skip_counts(self, now=None):
+            """(today's breaks still ahead and not skipped, today's skipped breaks not yet over)."""
+            now = now or dt.datetime.now()
+            skipped = lambda s: self.events.get((s.date(), s.time())) == "skipped"
+            todays = self.todays_breaks(now.date())
+            ahead = 0 if self.active else sum(1 for s, _e in todays if s > now and not skipped(s))
+            return ahead, sum(1 for s, e in todays if e > now and skipped(s))
+
+        def skip_next(self):
+            """Skip only the next break, if it is today."""
+            now = dt.datetime.now()
+            nxt = self.next_break(now)
+            if not nxt or nxt[0].date() != now.date():
+                self.win.toast("No more breaks today")
+                return
+            s, _e = nxt
+            self.events[(s.date(), s.time())] = "skipped"
+            self.log(f"Skipping the {fmt12(s)} break.")
+            self.win.rebuild_breaks()
+            self.win.toast(f"Skipping the {fmt12(s)} break", ("Undo", self.unskip_today))
+
+        def unskip_today(self):
+            """Bring back today's skipped breaks that haven't ended yet."""
+            now, n = dt.datetime.now(), 0
+            for s, e in self.todays_breaks(now.date()):
+                key = (s.date(), s.time())
+                if e > now and self.events.get(key) == "skipped":
+                    del self.events[key]
+                    n += 1
+            if n:
+                self.log(f"Skipped breaks are back on ({n}).")
+            self.win.rebuild_breaks()
+            self.win.toast(f"{n} break{'s' if n != 1 else ''} back on" if n else "Nothing to bring back")
+
         def skip_today(self):
-            n = 0
-            for s, _e in self.todays_breaks():
-                if s > dt.datetime.now():
+            now, n = dt.datetime.now(), 0
+            for s, _e in self.todays_breaks(now.date()):
+                if s > now:
                     self.events[(s.date(), s.time())] = "skipped"
                     n += 1
             self.log("Remaining breaks today will be skipped.")
             self.win.rebuild_breaks()
-            self.win.toast(f"Skipping {n} break{'s' if n != 1 else ''} today" if n else "No more breaks today")
+            self.win.toast(f"Skipping {n} break{'s' if n != 1 else ''} today" if n else "No more breaks today",
+                           ("Undo", self.unskip_today) if n else None)
 
         def break_now(self, minutes):
             start = dt.datetime.now().replace(microsecond=0)
@@ -726,9 +769,16 @@ def build_app_classes():
                     ui = dict(eyebrow="BREAKS PAUSED", clock="––:––", mode="off", frac=0,
                               caption="Turn on automatic breaks", action="Take a Break Now")
                     text = "Schedule is off"
+                elif nxt and nxt[0].date() != now.date():
+                    # nothing left today: no day-long countdown, just say when the next one is
+                    s, e = nxt
+                    day = "tomorrow" if s.date() == now.date() + dt.timedelta(days=1) else f"{s:%A}"
+                    ui = dict(eyebrow="DONE FOR TODAY", clock="––:––", mode="off", frac=0,
+                              caption=f"Next break {day}, {fmt_range(s, e)}", action="Take a Break Now")
+                    text = f"Done for today · next break {day} {fmt12(s)}"
                 elif nxt:
                     s, e = nxt
-                    when = "" if s.date() == now.date() else f"{s:%A} "
+                    when = ""
                     ui = dict(eyebrow="NEXT BREAK", clock=fmt_clock((s - now).total_seconds()),
                               mode="work", frac=self.work_progress(now, s),
                               caption=f"{when}{fmt_range(s, e)}", action="Take a Break Now")

@@ -61,13 +61,17 @@ export function iconButton(name: string, label: string, onClick: () => void, cls
 const toasts = h("div", { class: "toasts", role: "status", "aria-live": "polite" });
 document.body.append(toasts);
 
-export function toast(msg: string) {
+/** A short message at the bottom; with `action`, a button (e.g. Undo) and a longer stay. */
+export function toast(msg: string, action?: { label: string; run: () => void }) {
   const t = h("div", { class: "toast" }, msg);
-  toasts.append(t);
-  setTimeout(() => {
+  const close = () => {
     t.classList.add("out");
     setTimeout(() => t.remove(), 240);
-  }, 3000);
+  };
+  if (action)
+    t.append(h("button", { class: "toast-action", on: { click: () => { close(); action.run(); } } }, action.label));
+  toasts.append(t);
+  setTimeout(close, action ? 6000 : 3000);
 }
 
 export function errorToast(e: unknown) {

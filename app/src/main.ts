@@ -61,7 +61,9 @@ function toggleMenu() {
   const item = (label: string, fn: () => void) => h("button", { on: { click: () => { closeMenu(); fn(); } } }, label);
   menu = h("div", { class: "menu", role: "menu" },
     item("Take a Break Now…", () => app.openBreakNow()),
+    item("Skip Next Break", () => app.skipNext()),
     item("Skip Today's Breaks", () => app.skipToday()),
+    item("Undo Skipped Breaks", () => app.unskip()),
     h("hr"),
     item("Activity Log", showLog),
     item("Settings", () => app.openSettings()),

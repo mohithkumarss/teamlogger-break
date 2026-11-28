@@ -37,7 +37,9 @@ export class TodayView {
   private primary: HTMLButtonElement;
   private ext5: HTMLButtonElement;
   private ext10: HTMLButtonElement;
+  private skipNext: HTMLButtonElement;
   private skip: HTMLButtonElement;
+  private unskip: HTMLButtonElement;
   private strip = new Chart();
   private trend = new Chart();
   private pills = new Chart();
@@ -59,7 +61,9 @@ export class TodayView {
     this.primary = h("button", { class: "btn primary", on: { click: () => this.onPrimary() } }, "Take a break now");
     this.ext5 = h("button", { class: "btn soft", hidden: true, on: { click: () => app.extend(5) } }, "+5 min");
     this.ext10 = h("button", { class: "btn soft", hidden: true, on: { click: () => app.extend(10) } }, "+10 min");
-    this.skip = h("button", { class: "btn soft", title: "Skip today's remaining breaks", on: { click: () => app.skipToday() } }, "Skip today");
+    this.skipNext = h("button", { class: "btn soft", title: "Skip only the next break", on: { click: () => app.skipNext() } }, "Skip next break");
+    this.skip = h("button", { class: "btn soft", title: "Skip all of today's remaining breaks", on: { click: () => app.skipToday() } }, "Skip today");
+    this.unskip = h("button", { class: "btn quiet", title: "Bring back today's skipped breaks", on: { click: () => app.unskip() } }, "Undo skip");
 
     this.strip.el.addEventListener("click", (e) => {
       const p = (e.target as Element).closest("[data-planned]")?.getAttribute("data-planned");
@@ -87,7 +91,7 @@ export class TodayView {
         h("span", { class: "card-title spacer" }, "Your day"),
         h("button", { class: "btn quiet", on: { click: () => app.openBreakEditor() } }, icon("plus"), "Add break")),
       h("div", { style: "margin-top:6px" }, this.strip.el),
-      h("div", { class: "actions" }, this.primary, this.ext5, this.ext10, this.skip),
+      h("div", { class: "actions" }, this.primary, this.ext5, this.ext10, this.skipNext, this.skip, this.unskip),
     );
 
     const trendCard = h("section", { class: "card grow", style: "gap:2px" },
@@ -139,8 +143,9 @@ export class TodayView {
       this.cap2.textContent = st.caption;
     } else {
       this.stateLbl.textContent = st.running ? "Done for today" : "Paused";
-      this.cap1.textContent = st.running ? "No more breaks ahead" : "Automatic breaks are off";
-      this.cap2.textContent = st.running ? "Add one in Settings" : "Turn on Auto to follow your schedule";
+      this.cap1.textContent = !st.running ? "Automatic breaks are off"
+        : st.skipped_today ? `${plural(st.skipped_today, "break")} skipped today` : "No more breaks today";
+      this.cap2.textContent = st.caption;
     }
     this.clock.textContent = st.target ? fmtClock(st.target - Date.now() / 1000) : "—";
     this.bar.style.width = `${Math.round(st.frac * 1000) / 10}%`;
@@ -148,7 +153,11 @@ export class TodayView {
     this.primary.textContent = onBreak ? "Resume work" : "Take a break now";
     this.primary.classList.toggle("breaking", onBreak);
     this.ext5.hidden = this.ext10.hidden = !onBreak;
-    this.skip.hidden = onBreak || !st.running || !st.can_skip;
+    const free = !onBreak && st.running;
+    this.skipNext.hidden = !free || !st.can_skip;
+    if (st.can_skip && st.next) this.skipNext.textContent = `Skip ${fmtTs(st.next[0])} break`;
+    this.skip.hidden = !free || st.upcoming_today < 2;
+    this.unskip.hidden = !free || !st.skipped_today;
     setSwitch(this.autoSwitch, st.running);
   }
 
@@ -160,8 +169,9 @@ export class TodayView {
 
   private renderTotals(d: Dashboard, today: DayDetail, replay: boolean) {
     const workdays = app.cfg.days;
-    this.strip.set(`${today.summary.day}|${today.segments.length}|${today.planned.join()}`,
-      (w, a) => dayStrip(w, a, { day: today.summary.day, segments: today.segments, planned: today.planned, editable: true }), replay);
+    const skipped = (app.status?.today ?? []).filter((b) => b.state === "skipped").map((b) => b.start);
+    this.strip.set(`${today.summary.day}|${today.segments.length}|${today.planned.join()}|${skipped.join()}`,
+      (w, a) => dayStrip(w, a, { day: today.summary.day, segments: today.segments, planned: today.planned, editable: true, skipped }), replay);
 
     const t = d.today;
     countTo(this.tWorked.val, t.worked, fmtHm);

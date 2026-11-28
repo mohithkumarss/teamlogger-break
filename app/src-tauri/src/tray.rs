@@ -5,7 +5,8 @@
 //!   macOS    menu-bar item: template ring + countdown title (adapts to light/dark menu bar)
 //!   Linux    top-bar indicator: coloured ring + countdown label (AppIndicator), like the GTK app
 //!   Windows  tray icon: coloured ring; the countdown is in the tooltip (tray icons can't show text)
-//! The menu: status line, Open, Automatic breaks, Skip today, Quit.
+//! The menu: status line, Open, Automatic breaks, Skip next break, Skip today,
+//! Undo skip, Quit.
 
 use chrono::Local;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -99,11 +100,14 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let status_item = MenuItem::with_id(app, "status", "Starting…", false, None::<&str>)?;
     let open = MenuItem::with_id(app, "open", "Open ZenMetrics", true, None::<&str>)?;
     let auto = CheckMenuItem::with_id(app, "auto", "Automatic breaks", true, running, None::<&str>)?;
+    let skip_next = MenuItem::with_id(app, "skip_next", "Skip next break", true, None::<&str>)?;
     let skip = MenuItem::with_id(app, "skip", "Skip today's remaining breaks", true, None::<&str>)?;
+    let unskip = MenuItem::with_id(app, "unskip", "Undo skipped breaks", false, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit ZenMetrics", true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
-        &[&status_item, &PredefinedMenuItem::separator(app)?, &open, &auto, &skip, &PredefinedMenuItem::separator(app)?, &quit],
+        &[&status_item, &PredefinedMenuItem::separator(app)?, &open, &auto, &PredefinedMenuItem::separator(app)?,
+          &skip_next, &skip, &unskip, &PredefinedMenuItem::separator(app)?, &quit],
     )?;
     let template = cfg!(target_os = "macos");
     let tray = TrayIconBuilder::with_id("main")
@@ -121,6 +125,12 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
                     if let Err(e) = crate::commands::apply_running(&state, on) {
                         state.add_log(format!("Couldn't switch automatic breaks: {e}"));
                     }
+                }
+                "skip_next" => {
+                    crate::commands::skip_next_break(&state);
+                }
+                "unskip" => {
+                    crate::commands::undo_skips(&state);
                 }
                 "skip" => {
                     let cfg = state.cfg.lock().unwrap().clone();
@@ -144,6 +154,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         let mut last_title = String::new();
         let mut last_text = String::new();
         let mut last_running = None;
+        let mut last_next = String::new();
         loop {
             let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
             std::thread::sleep(Duration::from_millis(1000 - now.subsec_millis() as u64 + 5));
@@ -178,7 +189,19 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
                 let _ = auto.set_checked(st.running);
                 last_running = Some(st.running);
             }
-            let _ = skip.set_enabled(st.can_skip && st.running);
+            let free = st.running && st.active.is_none();
+            let next_label = match st.next {
+                Some((s, _)) if st.can_skip => format!("Skip the {} break", crate::store::fmt12(
+                    chrono::DateTime::from_timestamp(s as i64, 0).map(|d| d.with_timezone(&Local).time()).unwrap_or_default())),
+                _ => "Skip next break".into(),
+            };
+            if next_label != last_next {
+                let _ = skip_next.set_text(&next_label);
+                last_next = next_label;
+            }
+            let _ = skip_next.set_enabled(free && st.can_skip);
+            let _ = skip.set_enabled(free && st.upcoming_today > 1);
+            let _ = unskip.set_enabled(free && st.skipped_today > 0);
         }
     });
     Ok(())

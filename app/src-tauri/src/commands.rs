@@ -129,6 +129,34 @@ pub fn skip_today(state: State<AppState>) -> usize {
     n
 }
 
+/// Skip just the next break (today only). Returns its (start, end), if any.
+#[tauri::command]
+pub fn skip_next(state: State<AppState>) -> Option<(f64, f64)> {
+    skip_next_break(&state)
+}
+
+pub fn skip_next_break(state: &AppState) -> Option<(f64, f64)> {
+    let cfg = state.cfg.lock().unwrap().clone();
+    let (s, e) = state.sched.lock().unwrap().skip_next(&cfg, now())?;
+    state.add_log(format!("Skipping the {} break.", crate::store::fmt12(s.time())));
+    Some((crate::schedule::ts(s), crate::schedule::ts(e)))
+}
+
+/// Bring back today's skipped breaks. Returns how many.
+#[tauri::command]
+pub fn unskip_today(state: State<AppState>) -> usize {
+    undo_skips(&state)
+}
+
+pub fn undo_skips(state: &AppState) -> usize {
+    let cfg = state.cfg.lock().unwrap().clone();
+    let n = state.sched.lock().unwrap().unskip_today(&cfg, now());
+    if n > 0 {
+        state.add_log(format!("Skipped breaks are back on ({n})."));
+    }
+    n
+}
+
 // ---------------------------------------------------------------- stats
 
 #[derive(Serialize)]

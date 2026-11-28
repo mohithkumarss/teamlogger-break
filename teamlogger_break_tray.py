@@ -99,7 +99,8 @@ class Tray:
         menu.append(self.status_item)
         menu.append(Gtk.SeparatorMenuItem())
         for label, cmd in (("Open window", "show"), ("Resume now (end break)", "resume"),
-                           ("Quit break scheduler", "quit")):
+                           ("Skip next break", "skip-next"), ("Skip today's remaining breaks", "skip-today"),
+                           ("Undo skipped breaks", "unskip"), ("Quit ZenMetrics", "quit")):
             item = Gtk.MenuItem(label=label)
             item.connect("activate", lambda _w, c=cmd: self.command(c))
             menu.append(item)

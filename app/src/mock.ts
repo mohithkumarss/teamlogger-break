@@ -70,15 +70,22 @@ export function mockApi(): Api {
         : !seenNext ? ((seenNext = true), "next" as const) : "later" as const;
       return { start: s, end: e, state };
     });
+    const isSkipped = (s: number) => skipped.has(`${dayKey(now)}${s}`);
     const base = { running, target: null, frac: 0, next: null, active: null, can_skip: false,
-                   planned_today: todaysBreaks(now).length, today };
+                   planned_today: todaysBreaks(now).length, today,
+                   upcoming_today: todaysBreaks(now).filter(([s]) => s > n && !isSkipped(s)).length,
+                   skipped_today: todaysBreaks(now).filter(([s, e]) => e > n && isSkipped(s)).length };
     if (!running) return { ...base, mode: "off", caption: "Turn on Auto to follow your schedule", text: "Schedule is off" };
     for (let off = 0; off < 8; off++) {
       const day = addDays(now, off);
       for (const [s, e] of todaysBreaks(day)) {
         if (s <= n || skipped.has(`${dayKey(day)}${s}`)) continue;
-        const when = off === 0 ? "" : `${dayName(day)} `;
-        const caption = when + fmtRangeHM(hm(s), hm(e));
+        if (off > 0) {
+          const when = off === 1 ? "tomorrow" : dayName(day);
+          return { ...base, mode: "off", caption: `Next break ${when}, ${fmtRangeHM(hm(s), hm(e))}`,
+                   text: `Done for today · next break ${when}`, next: [s, e] };
+        }
+        const caption = fmtRangeHM(hm(s), hm(e));
         let frac = 0;
         if (off === 0) {
           const ended = todaysBreaks(now).filter(([, be]) => be <= n).map(([, be]) => be);
@@ -124,6 +131,17 @@ export function mockApi(): Api {
     },
     status: async () => status(),
     set_running: async (on) => { running = on; cfg.autostart = on; say(on ? "Schedule on." : "Schedule off."); return status(); },
+    skip_next: async () => {
+      const now = new Date(), n = now.getTime() / 1000;
+      const b = todaysBreaks(now).find(([s]) => s > n && !skipped.has(`${dayKey(now)}${s}`));
+      if (b) skipped.add(`${dayKey(now)}${b[0]}`);
+      return b ?? null;
+    },
+    unskip_today: async () => {
+      const now = new Date(), n = now.getTime() / 1000;
+      const back = todaysBreaks(now).filter(([s, e]) => e > n && skipped.delete(`${dayKey(now)}${s}`));
+      return back.length;
+    },
     skip_today: async () => {
       const now = new Date();
       const left = todaysBreaks(now).filter(([s]) => s > now.getTime() / 1000);

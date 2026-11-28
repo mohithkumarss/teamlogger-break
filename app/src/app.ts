@@ -1,7 +1,7 @@
 // Shared state and actions used by the views.
 import { api, type Config, type Status, type Break } from "./api.ts";
 import { errorToast, toast, confirmDialog } from "./dom.ts";
-import { fmtRangeHM, plural } from "./fmt.ts";
+import { fmtRangeHM, fmtTs, plural } from "./fmt.ts";
 
 type Listener = () => void;
 
@@ -74,9 +74,23 @@ class AppState {
     }
   }
 
+  async skipNext() {
+    const b = await api.skip_next();
+    toast(b ? `Skipping the ${fmtTs(b[0])} break` : "No more breaks today", b ? { label: "Undo", run: () => this.unskip() } : undefined);
+    this.status = await api.status();
+    this.dataChanged();
+  }
+
+  async unskip() {
+    const n = await api.unskip_today();
+    toast(n ? `${plural(n, "break")} back on` : "Nothing to bring back");
+    this.status = await api.status();
+    this.dataChanged();
+  }
+
   async skipToday() {
     const n = await api.skip_today();
-    toast(n ? `Skipping ${plural(n, "break")} today` : "No more breaks today");
+    toast(n ? `Skipping ${plural(n, "break")} today` : "No more breaks today", n ? { label: "Undo", run: () => this.unskip() } : undefined);
     this.status = await api.status();
     this.dataChanged();
   }
