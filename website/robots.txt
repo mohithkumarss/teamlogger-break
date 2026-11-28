@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://zenmetrics.vyaca.com/sitemap.xml

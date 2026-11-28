@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZenMetrics — breaks that take themselves, for TeamLogger</title>
+  <meta name="description" content="ZenMetrics takes and ends your TeamLogger breaks on schedule — with a countdown in your menu bar, an alarm on your phone and a calm view of your week. Free for macOS, Windows and Linux.">
+  <link rel="canonical" href="https://zenmetrics.vyaca.com/">
+  <meta name="theme-color" content="#EFEFF2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0A0A0B" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/img/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,300..800,0..100&display=swap">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ZenMetrics">
+  <meta property="og:title" content="ZenMetrics — breaks that take themselves">
+  <meta property="og:description" content="A break scheduler for the TeamLogger desktop app: a countdown you can see, an alarm on your phone, and stats for your week.">
+  <meta property="og:url" content="https://zenmetrics.vyaca.com/">
+  <meta property="og:image" content="https://zenmetrics.vyaca.com/assets/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>
+    try { const t = localStorage.getItem("zm-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ZenMetrics",
+    "operatingSystem": "macOS, Windows 10, Windows 11, Linux",
+    "applicationCategory": "ProductivityApplication",
+    "description": "A break scheduler for the TeamLogger desktop app.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "url": "https://zenmetrics.vyaca.com/",
+    "downloadUrl": "https://github.com/vyaca-corp/zenmetrics/releases/latest"
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ============================================================ nav -->
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="ZenMetrics, back to top">
+        <img src="assets/img/logo.svg" alt="" width="26" height="26"><span>ZenMetrics</span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between light and dark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" class="fill"/></svg>
+        </button>
+        <a class="star-btn" href="https://github.com/vyaca-corp/zenmetrics" target="_blank" rel="noopener" data-star>
+          <svg class="gh" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-github"/></svg>
+          <span>Star</span><span class="star-count" hidden></span>
+        </a>
+        <a class="btn primary sm" href="https://github.com/vyaca-corp/zenmetrics/releases/latest" target="_blank" rel="noopener" data-download>Download</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ============================================================ hero -->
+    <section class="hero" id="top">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <a class="news" href="https://github.com/vyaca-corp/zenmetrics" target="_blank" rel="noopener">
+            <span class="news-tag">New</span><span>Skip just the next break<span class="wide-only"> — and undo it</span></span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </a>
+          <h1>Breaks that<br>take themselves.</h1>
+          <p class="lead">ZenMetrics presses <b>Take a break</b> in TeamLogger at the times you choose, counts down where you can see it, and presses <b>Resume</b> when you’re back.</p>
+          <div class="cta">
+            <a class="btn primary" href="https://github.com/vyaca-corp/zenmetrics/releases/latest" target="_blank" rel="noopener" data-download>
+              <svg class="dl" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
+              <span data-download-label>Download</span>
+            </a>
+            <a class="btn soft" href="https://github.com/vyaca-corp/zenmetrics" target="_blank" rel="noopener" data-star>
+              <svg class="star" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg>
+              <span>Star on GitHub</span><span class="star-count" hidden></span>
+            </a>
+          </div>
+          <div class="os-line">
+            <span class="os-icons"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-windows"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-linux"/></svg></span>
+            <span>Free for macOS, Windows &amp; Linux · Unofficial</span>
+          </div>
+        </div>
+
+        <!-- the app's progress ring, as a live dial -->
+        <div class="dial-wrap" aria-hidden="true">
+          <div class="dial">
+            <svg class="dial-svg" viewBox="0 0 400 400">
+              <circle cx="200" cy="200" r="186" class="d-ticks" pathLength="120"/>
+              <circle cx="200" cy="200" r="160" class="d-track"/>
+              <circle cx="200" cy="200" r="160" class="d-arc" pathLength="100" data-dial/>
+            </svg>
+            <span class="d-break"></span>
+            <div class="dial-center">
+              <span class="state"><span class="dot"></span>Working</span>
+              <span class="dial-num" data-clock>47:12</span>
+              <span class="dial-cap">until your next break</span>
+            </div>
+          </div>
+          <div class="float d-chip"><span class="amber-dot"></span>Break · 5:00 – 5:10 PM</div>
+          <div class="float menubar">
+            <span class="ring"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" class="track"/><circle cx="12" cy="12" r="8.6" class="arc" data-arc/><circle cx="12" cy="12" r="2.3" class="core"/></svg></span>
+            <span class="num" data-clock>47:12</span>
+          </div>
+          <div class="float ntfy">
+            <div class="ntfy-head"><span class="ntfy-app">ntfy</span><span>now</span></div>
+            <b>Break in 2 minutes</b>
+            <span class="mute">5:00 – 5:10 PM · on your phone too</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage-section" aria-label="The ZenMetrics app">
+      <div class="wrap stage">
+        <div class="glow" aria-hidden="true"></div>
+        <figure class="window">
+          <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>ZenMetrics</span></div>
+          <img class="only-light" src="assets/img/today-light.webp" width="1600" height="1000" alt="ZenMetrics Today screen: 31 minutes until the next break, the day’s timeline, and this week’s hours" loading="lazy" decoding="async">
+          <img class="only-dark" src="assets/img/today-dark.webp" width="1600" height="1000" alt="ZenMetrics Today screen: 31 minutes until the next break, the day’s timeline, and this week’s hours" loading="lazy" decoding="async">
+        </figure>
+        <div class="float toast" aria-hidden="true">
+          <img src="assets/img/logo.svg" alt="" width="34" height="34">
+          <div><b>Break in 2 minutes</b><span>5:00 – 5:10 PM</span></div>
+        </div>
+        <div class="float ntfy stage-ntfy" aria-hidden="true">
+          <div class="ntfy-head"><span class="ntfy-app">ntfy</span><span>now</span></div>
+          <b>On break · 12 min left</b>
+          <span class="mute">Back to work at 1:40 PM</span>
+          <div class="ntfy-actions"><span>+5 min</span><span>+10 min</span><span>Resume</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ features (bento) -->
+    <section class="section" id="features">
+      <div class="wrap">
+        <header class="head reveal">
+          <p class="kicker">What it does</p>
+          <h2>Step away on time.<br><span class="dim">Come back on time.</span></h2>
+        </header>
+
+        <div class="bento">
+          <article class="tile t-count reveal">
+            <div class="tile-copy">
+              <h3>A countdown you can see</h3>
+              <p>The time to your next break — or, on a break, until you’re back. In the window, and as a little ring in your menu bar, top bar or tray.</p>
+            </div>
+            <div class="mini-count" aria-hidden="true">
+              <span class="state"><span class="dot"></span>Working</span>
+              <div class="mc-row"><span class="mc-num num" data-clock>47:12</span><span class="mc-cap"><b>until your next break</b><span>5:00 – 5:10 PM</span></span></div>
+              <div class="bar"><span data-bar></span></div>
+            </div>
+          </article>
+
+          <article class="tile t-phone reveal">
+            <div class="tile-copy">
+              <h3>An alarm on your phone</h3>
+              <p>A live countdown, a warning before the end, and an alarm that rings until you’re back — even if your laptop sleeps.</p>
+            </div>
+            <div class="mini-phone" aria-hidden="true">
+              <div class="lock"><span class="lock-time">1:31</span><span class="lock-date">Friday, 28 November</span></div>
+              <div class="np"><div class="ntfy-head"><span class="ntfy-app">ntfy</span><span>now</span></div><b>On break · 9 min left</b><span class="mute">Back to work at 1:40 PM</span><div class="ntfy-actions"><span>+5 min</span><span>+10 min</span><span>Resume</span></div></div>
+              <div class="np"><div class="ntfy-head"><span class="ntfy-app">ntfy</span><span>12:58</span></div><b>Break in 2 minutes</b><span class="mute">1:00 – 1:40 PM</span></div>
+              <div class="np faded"><div class="ntfy-head"><span class="ntfy-app">ntfy</span><span>11:40</span></div><b>Break over — back to work</b><span class="mute">Rings until you press Stop</span></div>
+            </div>
+          </article>
+
+          <article class="tile t-run reveal">
+            <div class="tile-copy">
+              <h3>Breaks that run themselves</h3>
+              <p>A heads-up, then the break starts and ends on time. Stretch it, or come back early.</p>
+            </div>
+            <ol class="mini-flow" aria-hidden="true">
+              <li><span class="num">4:58</span>Heads-up</li>
+              <li class="amber"><span class="num">5:00</span>Take a break — pressed</li>
+              <li><span class="num">5:05</span>“5 minutes left”</li>
+              <li class="blue"><span class="num">5:10</span>Resume — pressed</li>
+            </ol>
+          </article>
+
+          <article class="tile t-skip reveal">
+            <div class="tile-copy">
+              <h3>Skip without fuss</h3>
+              <p>Meeting running over? Skip just the next break, or the rest of today — and undo it.</p>
+            </div>
+            <div class="mini-skip" aria-hidden="true">
+              <div class="pills"><span class="pill-btn">Skip next</span><span class="pill-btn ghost">Skip today</span></div>
+              <div class="mini-toast">Skipped the 1:00 PM break<span class="undo">Undo</span></div>
+            </div>
+          </article>
+
+          <article class="tile t-week reveal">
+            <div class="tile-copy">
+              <h3>Your week at a glance</h3>
+              <p>Worked time straight from TeamLogger’s own total — week bars, a month calendar, an 8-week trend.</p>
+            </div>
+            <div class="mini-bars" aria-hidden="true">
+              <div style="--h:.78"><b>7.0</b><i></i><span>Mo</span></div>
+              <div style="--h:.82"><b>7.3</b><i></i><span>Tu</span></div>
+              <div style="--h:.88"><b>7.8</b><i></i><span>We</span></div>
+              <div style="--h:.77"><b>6.9</b><i></i><span>Th</span></div>
+              <div class="today" style="--h:.6"><b>5.4</b><i></i><span>Fr</span></div>
+              <div style="--h:0"><b></b><i></i><span>Sa</span></div>
+              <div style="--h:0"><b></b><i></i><span>Su</span></div>
+            </div>
+          </article>
+
+          <article class="tile t-day reveal">
+            <div class="tile-copy">
+              <h3>Your day on one line</h3>
+              <p>Work, breaks and what’s planned — click a break to change it.</p>
+            </div>
+            <div class="mini-day" aria-hidden="true">
+              <div class="md-marks"><span style="left:29%">11:30</span><span style="left:52.5%">1:00</span><span style="left:88%">5:00</span></div>
+              <div class="md-track">
+                <i class="w" style="left:5%;width:22%"></i><i class="b" style="left:28%;width:2.4%"></i>
+                <i class="w" style="left:31.5%;width:16%"></i><i class="b big" style="left:48.5%;width:8%"></i>
+                <i class="w" style="left:57.5%;width:17%"></i><i class="p" style="left:86.5%;width:3%"></i>
+                <i class="now" style="left:75%"></i>
+              </div>
+              <div class="md-hours"><span>9 am</span><span>11 am</span><span>1 pm</span><span>3 pm</span><span>5 pm</span><span>7 pm</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ screens -->
+    <section class="section screens" aria-label="Screens">
+      <div class="wrap">
+        <header class="head center reveal">
+          <p class="kicker">Inside the app</p>
+          <h2>Calm by design.</h2>
+        </header>
+        <div class="tabs reveal" role="tablist" aria-label="Screens">
+          <button role="tab" aria-selected="true" data-shot="today">Today</button>
+          <button role="tab" aria-selected="false" data-shot="stats">Stats</button>
+          <button role="tab" aria-selected="false" data-shot="setup">Setup</button>
+        </div>
+        <figure class="window reveal">
+          <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span data-shot-title>Today</span></div>
+          <div class="shots">
+            <div class="shot is-active" data-shot="today">
+              <img class="only-light" src="assets/img/today-light.webp" width="1600" height="1000" alt="Today: the countdown to the next break, your day on one line, and this week’s numbers" loading="lazy" decoding="async">
+              <img class="only-dark" src="assets/img/today-dark.webp" width="1600" height="1000" alt="Today: the countdown to the next break, your day on one line, and this week’s numbers" loading="lazy" decoding="async">
+            </div>
+            <div class="shot" data-shot="stats">
+              <img class="only-light" src="assets/img/stats-light.webp" width="1600" height="914" alt="Stats: hours per day this week, the selected day’s timeline, and history" loading="lazy" decoding="async">
+              <img class="only-dark" src="assets/img/stats-dark.webp" width="1600" height="914" alt="Stats: hours per day this week, the selected day’s timeline, and history" loading="lazy" decoding="async">
+            </div>
+            <div class="shot" data-shot="setup">
+              <img src="assets/img/setup-dark.webp" width="1600" height="1114" alt="Setup: letting ZenMetrics press TeamLogger’s buttons, with a consent checkbox" loading="lazy" decoding="async">
+            </div>
+          </div>
+        </figure>
+        <p class="caption" data-shot-caption>Your next break, your day on one line, and this week’s numbers.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ how -->
+    <section class="section" id="how">
+      <div class="wrap">
+        <header class="head reveal">
+          <p class="kicker">How it works</p>
+          <h2>Set it up once.<br><span class="dim">Then forget about it.</span></h2>
+        </header>
+        <ol class="steps">
+          <li class="reveal"><span class="step-n num">01</span><h3>Install</h3><p>Get ZenMetrics from GitHub for your computer. The TeamLogger desktop app should already be installed and signed in.</p></li>
+          <li class="reveal"><span class="step-n num">02</span><h3>A one-minute setup</h3><p>It finds TeamLogger, asks your permission to press its buttons, and helps you pick your breaks — or start from 11:30, 1:00 and 5:00.</p></li>
+          <li class="reveal"><span class="step-n num">03</span><h3>Get on with your day</h3><p>Close the window. The countdown stays in your menu bar or tray, and every break starts and ends on time.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============================================================ privacy -->
+    <section class="section" id="privacy">
+      <div class="wrap split">
+        <header class="head reveal">
+          <p class="kicker">Privacy &amp; safety</p>
+          <h2>Real breaks.<br><span class="dim">Nothing faked.</span></h2>
+          <p class="lead">ZenMetrics presses the same buttons you would. It doesn’t fake activity, hide anything from TeamLogger, or change TeamLogger in any way.</p>
+        </header>
+        <ul class="promises">
+          <li class="reveal"><span class="check"></span><div><h3>Local only</h3><p>It talks to TeamLogger through a control port only your own computer can reach (127.0.0.1).</p></div></li>
+          <li class="reveal"><span class="check"></span><div><h3>Your consent first</h3><p>Nothing is restarted or clicked until you agree in setup.</p></div></li>
+          <li class="reveal"><span class="check"></span><div><h3>Your data stays with you</h3><p>Schedule, timeline and stats live on your computer. No account, no analytics.</p></div></li>
+          <li class="reveal"><span class="check"></span><div><h3>Try it safely</h3><p>Test mode runs everything — countdown, notifications, phone — without clicking in TeamLogger.</p></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================ download (GitHub) -->
+    <section class="section" id="download">
+      <div class="wrap">
+        <div class="get reveal">
+          <div class="get-copy">
+            <span class="gh-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-github"/></svg></span>
+            <h2>Download on GitHub</h2>
+            <p class="lead">ZenMetrics is free and lives on GitHub. Pick the file for your system from the latest release — and if it saves you a click every day, <b>a star helps other TeamLogger users find it</b>.</p>
+            <div class="cta">
+              <a class="btn primary" href="https://github.com/vyaca-corp/zenmetrics/releases/latest" target="_blank" rel="noopener" data-download>
+                <svg class="gh" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-github"/></svg><span>Open the latest release</span>
+              </a>
+              <a class="btn soft" href="https://github.com/vyaca-corp/zenmetrics" target="_blank" rel="noopener" data-star>
+                <svg class="star" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg><span>Star the repo</span><span class="star-count" hidden></span>
+              </a>
+            </div>
+            <p class="fineprint" data-release-line>Needs the TeamLogger desktop app on the same computer.</p>
+          </div>
+          <div class="which">
+            <p class="which-title">Which file do I pick?</p>
+            <ul>
+              <li data-os="mac"><a href="https://github.com/vyaca-corp/zenmetrics/releases/latest" target="_blank" rel="noopener" data-download data-for="mac"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg><div><b>macOS</b><code data-file="dmg">ZenMetrics_…_universal.dmg</code><span>First time: right-click the app → Open</span></div><span class="go" aria-hidden="true">Download<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+              <li data-os="win"><a href="https://github.com/vyaca-corp/zenmetrics/releases/latest" target="_blank" rel="noopener" data-download data-for="win"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-windows"/></svg><div><b>Windows</b><code data-file="exe">ZenMetrics_…_x64-setup.exe</code><span>SmartScreen: More info → Run anyway</span></div><span class="go" aria-hidden="true">Download<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+              <li data-os="linux"><a href="https://github.com/vyaca-corp/zenmetrics/releases/latest" target="_blank" rel="noopener" data-download data-for="linux"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-linux"/></svg><div><b>Linux</b><code data-file="deb">ZenMetrics_…_amd64.deb</code><span>or the .rpm / .AppImage</span></div><span class="go" aria-hidden="true">Download<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ faq -->
+    <section class="section" id="faq">
+      <div class="wrap faq-wrap">
+        <header class="head reveal">
+          <p class="kicker">FAQ</p>
+          <h2>Questions,<br><span class="dim">answered.</span></h2>
+        </header>
+        <div class="faq reveal">
+          <details><summary>Is ZenMetrics made by TeamLogger?</summary><p>No. ZenMetrics is an independent project — not made by, endorsed by or affiliated with TeamLogger. “TeamLogger” is used only to say which app it works with.</p></details>
+          <details><summary>Does it fake activity or hide anything?</summary><p>No. It presses TeamLogger’s own <b>Take a break</b> and <b>Resume</b> buttons, so each break is recorded exactly as if you had clicked yourself. It never changes TeamLogger.</p></details>
+          <details><summary>Is it free?</summary><p>Yes — free to download and use, including at work. It’s source-available under the PolyForm Internal Use License: read and change the code for your own use, but don’t redistribute it.</p></details>
+          <details><summary>What does “Connect” do to TeamLogger?</summary><p>It restarts TeamLogger once with a control port that listens only on your own computer (127.0.0.1). Its timer pauses for a few seconds. After each login you may need to press <b>Connect</b> once more.</p></details>
+          <details><summary>What if my computer is asleep at break time?</summary><p>If it wakes more than five minutes after a break should have started, that break is marked <i>missed</i> rather than started late. Closing ZenMetrics never ends a break in progress.</p></details>
+          <details><summary>Do I need the phone app?</summary><p>No — phone alerts are optional. Without them, ZenMetrics still notifies you and plays a sound on your computer.</p></details>
+          <details><summary>Where is my data stored?</summary><p>On your computer only. If you turn on phone alerts, break times are sent through ntfy to your private topic — nothing else.</p></details>
+          <details><summary>Is it allowed at my workplace?</summary><p>ZenMetrics takes real, recorded breaks, but use it only where your employer’s break and monitoring policies allow it, and check TeamLogger’s terms for your account. You’re responsible for how you use it.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ final -->
+    <section class="final">
+      <div class="wrap reveal">
+        <img src="assets/img/logo.svg" alt="" width="72" height="72">
+        <h2>Take your breaks.<br><span class="dim">On time, every time.</span></h2>
+        <div class="cta center">
+          <a class="btn primary" href="https://github.com/vyaca-corp/zenmetrics/releases/latest" target="_blank" rel="noopener" data-download>
+            <svg class="gh" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-github"/></svg><span>Download on GitHub</span>
+          </a>
+          <a class="btn soft" href="https://github.com/vyaca-corp/zenmetrics" target="_blank" rel="noopener" data-star>
+            <svg class="star" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg><span>Star</span><span class="star-count" hidden></span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap foot">
+      <a class="brand" href="#top"><img src="assets/img/logo.svg" alt="" width="22" height="22"><span>ZenMetrics</span></a>
+      <nav aria-label="Footer">
+        <a href="https://github.com/vyaca-corp/zenmetrics" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/vyaca-corp/zenmetrics/blob/main/docs/USER_GUIDE.md" target="_blank" rel="noopener">User guide</a>
+        <a href="https://github.com/vyaca-corp/zenmetrics/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/vyaca-corp/zenmetrics/blob/main/LICENSE.md" target="_blank" rel="noopener">License</a>
+      </nav>
+    </div>
+    <div class="wrap legal">
+      <p>Unofficial — ZenMetrics is not made by, endorsed by or affiliated with TeamLogger. “TeamLogger” is a trademark of its owner.</p>
+      <p>© <span id="year">2026</span> Vyaca</p>
+    </div>
+  </footer>
+
+  <!-- star ask, shown when a download opens GitHub -->
+  <dialog class="ask" id="star-ask" aria-labelledby="ask-title">
+    <form method="dialog" class="ask-inner">
+      <button class="ask-close" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="ask-star"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg></span>
+      <h3 id="ask-title" data-ask-title>Before you download — a quick star?</h3>
+      <p data-ask-text>ZenMetrics is free. A star on GitHub is the best way to help other TeamLogger users find it. It takes a second.</p>
+      <div class="ask-actions">
+        <a class="btn primary" href="https://github.com/vyaca-corp/zenmetrics" target="_blank" rel="noopener" data-ask-star>
+          <svg class="star" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg><span>Star on GitHub</span>
+        </a>
+        <a class="btn soft" href="https://github.com/vyaca-corp/zenmetrics/releases/latest" data-ask-continue>
+          <span data-ask-continue-label>Continue to download</span><svg viewBox="0 0 24 24" aria-hidden="true" class="arrow"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+        </a>
+      </div>
+      <p class="ask-file">On the download page, under <b>Assets</b>, pick <code data-file-for-os>the file for your system</code>.</p>
+    </form>
+  </dialog>
+
+  <!-- icons -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.8l2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.13 6.38 20.1l1.07-6.27L2.9 9.4l6.3-.9z"/></symbol>
+    <symbol id="i-apple" viewBox="0 0 24 24"><path fill="currentColor" d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5a4.3 4.3 0 0 0-3.4-1.8c-1.4-.2-2.8.8-3.5.8s-1.9-.8-3.1-.8a4.6 4.6 0 0 0-3.9 2.4c-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 3 2.4 1.2-.1 1.6-.8 3.1-.8s1.8.8 3.1.8 2.1-1.2 2.9-2.3a9.6 9.6 0 0 0 1.3-2.7 4.2 4.2 0 0 1-2.7-4zM14 5.6a4 4 0 0 0 1-3.1 4.2 4.2 0 0 0-2.8 1.5 3.9 3.9 0 0 0-1 3c1.1 0 2.1-.5 2.8-1.4z"/></symbol>
+    <symbol id="i-windows" viewBox="0 0 24 24"><path fill="currentColor" d="M3 5.5l7.5-1v7H3zm8.5-1.2L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zm8.5 0H21V21l-9.5-1.3z"/></symbol>
+    <symbol id="i-linux" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 3c-2 0-3 1.7-3 4 0 1.5-.6 2.5-1.6 4C6 13 5 15 5.5 17.5M12 3c2 0 3 1.7 3 4 0 1.5.6 2.5 1.6 4 1.4 2 2.4 4 1.9 6.5M8 20.5c1.2.6 2.5.9 4 .9s2.8-.3 4-.9M10.5 8h.01M13.5 8h.01"/></symbol>
+  </svg>
+
+  <script src="assets/site.js" defer></script>
+</body>
+</html>
